@@ -1,5 +1,7 @@
-/* ShopFlow – Collection Filters v1.0.4
+/* ShopFlow – Collection Filters v1.0.7
  * Behavior layer for the ShopFlow Collection Filters component (Storesynk-powered).
+ * v1.0.7: styles live in shopflow-collection-filters.css (loaded before the panel, so it never flashes open on phones);
+ *         this script no longer carries or injects its own CSS.
  * Storesynk does the actual filtering (sf-filter / sf-option-filter / sf-filter-value /
  * sf-filter-reset, active class .sf-active). This script only adds UX:
  *  - collapsible groups (start collapsed with data-filter-collapsed="true")
@@ -55,44 +57,6 @@
 
   // State + drawer styles (base styles live on the Webflow classes; these depend on
   // runtime classes: Storesynk's .sf-active / .sf-filter-unavailable, and is-open / is-collapsed)
-  const CSS = `
-.collection-filters .w-dyn-empty{display:none}
-.collection-filters [hidden]{display:none!important}
-[data-filters-empty]:not(.is-active){display:none!important}
-.filter-option{user-select:none}
-.filter-option:hover .filter-option-box{border-color:var(--_theme---text--primary)}
-.filter-option.sf-active .filter-option-box{background-color:var(--_theme---action--primary);border-color:var(--_theme---action--primary)}
-.filter-option.sf-active .filter-option-box::after{content:"";position:absolute;left:50%;top:45%;width:.3rem;height:.55rem;border:solid var(--_theme---action--primary-text);border-width:0 2px 2px 0;transform:translate(-50%,-50%) rotate(45deg)}
-.filter-option:focus-visible,.filter-group-toggle:focus-visible,.collection-filters-trigger:focus-visible,.collection-filters-clear:focus-visible,.collection-filters-close:focus-visible,.collection-filters-apply:focus-visible{outline:2px solid var(--_theme---focus--ring);outline-offset:2px}
-.filter-group.is-collapsed .filter-group-content{display:none}
-.filter-group.is-collapsed .filter-group-chevron{transform:rotate(45deg)}
-.filter-group[hidden]{display:none}
-.collection-filters-clear{visibility:hidden}
-.collection-filters.has-active-filters .collection-filters-clear{visibility:visible}
-@media (min-width:992px){
-.collection-filters{max-height:calc(100vh - 96px - 1rem);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
-}
-@media (max-width:991px){
-.collection-filters{position:static;flex:none;width:100%}
-.collection-filters-trigger{display:inline-flex}
-.collection-filters-overlay{display:block;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .25s ease}
-.collection-filters-panel{position:fixed;top:0;bottom:0;left:0;z-index:2001;width:min(22rem,88vw);padding:0 1.25rem;background-color:var(--_theme---background--primary);box-shadow:0 0 2rem rgba(0,0,0,.15);transform:translateX(-100%);visibility:hidden;transition:transform .25s ease,visibility 0s linear .25s}
-.collection-filters.is-open .collection-filters-panel{transform:none;visibility:visible;transition:transform .25s ease}
-.collection-filters.is-open .collection-filters-overlay{opacity:1;pointer-events:auto}
-.collection-filters-head{display:flex}
-.collection-filters-body{flex:1 1 auto;overflow-y:auto;overscroll-behavior:contain}
-.collection-filters-foot{padding-bottom:1rem;border-top:1px solid var(--_theme---border--subtle)}
-.collection-filters-apply{display:inline-flex}
-html.filters-open{overflow:hidden}
-}
-@media (prefers-reduced-motion:reduce){.collection-filters-panel,.collection-filters-overlay,.filter-group-chevron{transition:none!important}}`;
-  const injectCSS = () => {
-    if (document.getElementById('shopflow-collection-filters-css')) return;
-    const st = document.createElement('style');
-    st.id = 'shopflow-collection-filters-css';
-    st.textContent = CSS;
-    document.head.appendChild(st);
-  };
 
   const init = root => {
     if (root.dataset.sfInit) return;
@@ -234,6 +198,6 @@ html.filters-open{overflow:hidden}
     run();
   };
 
-  const boot = () => { const roots = document.querySelectorAll('[data-collection-filters]'); if (roots.length) injectCSS(); roots.forEach(init); };
+  const boot = () => { const roots = document.querySelectorAll('[data-collection-filters]'); roots.forEach(init); };
   document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', boot) : boot();
 })();
