@@ -13,12 +13,12 @@ layout, behavior and accessibility on top of Storesynk's `sf-*` attributes.
 | File(s) | Version | Installed in Webflow | Layer |
 |---|---|---|---|
 | `shopflow-page-stability.css` | 1.0.0 | Page Shell › embed **ShopFlow Core Code** (section 0) | Core 2.0 candidate |
-| `shopflow-sheet.css` / `.js` | 1.1.0 | Page Shell › embed **ShopFlow Core Code** (section 1) | Core 2.0 candidate |
-| `shopflow-quick-add.css` / `.js` | 1.1.0 | Page Shell › embed **ShopFlow Core Code** (section 2) | ShopFlow |
+| `shopflow-sheet.css` / `.js` | 1.2.0 | Page Shell › embed **ShopFlow Core Code** (section 1) – the shared drawer | Core 2.0 candidate |
+| `shopflow-quick-add.css` / `.js` | 1.1.0 / 1.1.1 | Page Shell › embed **ShopFlow Core Code** (section 2) | ShopFlow |
 | `shopflow-cart-page-bg.css` | 1.0.0 | Page Shell › embed **ShopFlow Core Code** (section 3) | ShopFlow |
 | `shopflow-cart-drawer.css` / `.js` | 1.0.5 / 1.0.3 | Page Shell › cart embed **Popup CSS** | ShopFlow |
-| `shopflow-mobile-nav.css` / `.js` | 1.0.1 | Navigation / OYG › embed **ShopFlow Mobile Nav Code** | ShopFlow |
-| `shopflow-pdp.css` / `.js` | 1.2.6 | Products Template › embed **ShopFlow PDP Code** | ShopFlow |
+| `shopflow-mobile-nav.css` / `.js` | 1.0.1 / 1.0.2 | Navigation / OYG › embed **ShopFlow Mobile Nav Code** | ShopFlow |
+| `shopflow-pdp.css` / `.js` | 1.2.7 / 1.2.6 | Products Template › embed **ShopFlow PDP Code** | ShopFlow |
 | `shopflow-collection-filters.css` | 1.0.7 | Shop All › filters embed (`<link id="shopflow-collection-filters-css">`) | ShopFlow |
 | `shopflow-collection-filters.js` | 1.0.7 | Shop All › filters embed | ShopFlow |
 | `shopflow-product-card-quick-add.css` | 1.1.0 | Product Card component (mobile "+" button) | ShopFlow |
@@ -28,6 +28,29 @@ layout, behavior and accessibility on top of Storesynk's `sf-*` attributes.
 
 **ShopFlow Core Code** is one embed in the Page Shell (loaded on every page) made of four files, in this order:
 page stability → sheet → quick add → cart page background. The CSS parts go in one `<style>`, the JS parts in one `<script>`.
+
+## The shared drawer (Sheet v1.2.0)
+
+Every page has one drawer, built by `shopflow-sheet.js` (no Webflow markup needed). What it shows is a **content
+block**: a hidden element anywhere on the page, named with `data-sheet="name"` (or `data-sheet-content="name"`).
+Any element with `data-sheet-open="name"` opens it; `ShopFlowSheet.show({title, html, mode})` opens content built in
+JavaScript. While open, the block's `[data-sheet-head]`, `[data-sheet-body]` and `[data-sheet-footer]` are moved into
+the drawer and moved back on close, so CMS bindings and Storesynk product context go with them.
+
+| Content | Block | Mode | Opened by |
+|---|---|---|---|
+| Phone menu | Navigation / OYG › `[data-sheet="mobile-nav"]` | left | hamburger |
+| Size guide | Products Template › `[data-sheet="size-guide"]` | center | "Size guide" link |
+| Quick Add | each product card › `[data-sheet="quick-add"]` (one per product: it carries that product's sizes) | auto | card "+" / Add to cart |
+
+Modes: `auto` (bottom sheet on phones, centered dialog on desktop), `bottom`, `center`, `left`, `right`.
+Not in the shared drawer, on purpose:
+- **Cart** – Storesynk's own popup (`[sf-cart-popup]`); Storesynk opens it after add-to-cart. Styled to match.
+- **Collection filters** – must stay inside the Storesynk collection (`[sf-collection]`) to keep filtering; it is
+  a sidebar on desktop and slides in on phones (`shopflow-collection-filters`).
+
+New drawer content (search, recently viewed, complete the look, store info…) = a new block + a trigger, no new code
+for the drawer itself.
 
 ## Design decisions reflected in the code
 

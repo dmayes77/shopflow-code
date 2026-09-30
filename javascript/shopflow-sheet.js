@@ -1,69 +1,144 @@
-/* ShopFlow – Sheet v1.1.0 – generic bottom sheet / dialog / left drawer behavior. Core 2.0 upstream candidate.
-   Installed in Page Shell › embed "ShopFlow Core Code" (section 1).
-   Open:  any element with data-sheet-open="name"  → opens [data-sheet="name"]
-          or JS: ShopFlowSheet.open(elementOrName, {returnFocus})
-   Close: [data-sheet-close] inside the sheet, overlay tap, Esc, or ShopFlowSheet.close(el, {instant, noFocus})
-   Events on the sheet element: "sheet:open", "sheet:close".
-   Handles: move to <body> (escapes transformed parents), scroll lock, focus trap, focus return, injected X button. */
+/* ShopFlow – Sheet v1.2.0 – one shared drawer for the whole site. Core 2.0 upstream candidate (not commerce-specific).
+   Installed in Page Shell › ShopFlow Core (dist/shopflow-core.js).
+
+   ONE DRAWER, MANY CONTENTS
+   The engine builds a single drawer (the "host", [data-sheet-host]) on every page. Anything the site wants to show in a
+   drawer is a content block somewhere on the page, usually hidden:
+       <div data-sheet="size-guide" data-sheet-mode="center" data-sheet-title="Size guide" class="is-hidden">
+         [data-sheet-head]    optional – replaces the default head (title + ✕)
+         [data-sheet-body]    optional – the content (if missing, the block's own children are used)
+         [data-sheet-footer]  optional – sticky actions at the bottom
+       </div>
+   (data-sheet-content="name" works the same as data-sheet="name". Older full-sheet markup with overlay/panel wrappers
+   still works: only its head/body/footer are used.)
+   While open, those parts are moved into the host and go back to their place on close, so CMS bindings and Storesynk
+   product context travel with them. The block's data-* attributes are mirrored onto the host (so CSS/JS written for
+   [data-quick-add], [data-mobile-nav] … keeps working), plus data-sheet-view="name".
+
+   Open:  any element with data-sheet-open="name", or ShopFlowSheet.open(nameOrBlock, {returnFocus})
+          ShopFlowSheet.show({title, html|node, mode, width, view}) for content built in JS (no Webflow markup)
+   Close: [data-sheet-close], overlay tap, Esc, or ShopFlowSheet.close()
+   Modes: data-sheet-mode = auto (bottom sheet ≤991px, centered dialog above) | bottom | center | left | right
+   Width: data-sheet-width="34rem" (or --sheet-width in CSS)
+   Events on the block (and the host): "sheet:open", "sheet:close".
+   Handles scroll lock, focus trap, focus return, injected ✕ button, reduced motion (CSS). */
 (function(){
   if(window.ShopFlowSheet) return;
-  var stack = [], ANIM = 260;
+  var ANIM = 260, host, panel, defHead, defTitle, defBody, current = null, closeTimer = 0;
   var FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
   var X_SVG = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+  var SKIP = /^data-sheet(-content|-mode|-title|-width|-open)?$/;
 
-  function byName(n){ return document.querySelector('[data-sheet="' + (window.CSS && CSS.escape ? CSS.escape(n) : n) + '"]'); }
-  function fire(s, type){ try{ s.dispatchEvent(new CustomEvent(type, {bubbles:true})); }catch(e){} }
+  function esc(n){ return window.CSS && CSS.escape ? CSS.escape(n) : n; }
+  function byName(n){ return document.querySelector('[data-sheet-content="' + esc(n) + '"], [data-sheet="' + esc(n) + '"]:not([data-sheet-host])'); }
+  function nameOf(b){ return b.getAttribute('data-sheet-content') || b.getAttribute('data-sheet') || ''; }
+  function fire(el, type){ try{ el && el.dispatchEvent(new CustomEvent(type, {bubbles:true})); }catch(e){} }
   function visible(el){ return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length); }
+  function xButton(){ return '<button type="button" data-sheet-x aria-label="Close">' + X_SVG + '</button>'; }
 
-  function prep(s){
-    if(s.__sheetReady) return; s.__sheetReady = true;
-    var x = s.querySelector('[data-sheet-head] [data-sheet-close]');
-    if(x && !x.querySelector('button, a')) x.innerHTML = '<button type="button" data-sheet-x aria-label="Close">' + X_SVG + '</button>';
-    var p = s.querySelector('[data-sheet-panel]');
-    if(p){
-      if(!p.hasAttribute('role')) p.setAttribute('role','dialog');
-      p.setAttribute('aria-modal','true'); p.setAttribute('tabindex','-1');
-      var t = s.querySelector('[data-sheet-title]');
-      if(t && !p.hasAttribute('aria-labelledby')){ if(!t.id) t.id = 'sheet-' + Math.random().toString(36).slice(2,8); p.setAttribute('aria-labelledby', t.id); }
+  function build(){
+    if(host) return;
+    host = document.createElement('div');
+    host.setAttribute('data-sheet', 'drawer'); host.setAttribute('data-sheet-host', '');
+    host.innerHTML = '<div data-sheet-overlay data-sheet-close></div>' +
+      '<div data-sheet-panel role="dialog" aria-modal="true" tabindex="-1">' +
+        '<div data-sheet-head data-sheet-default><div data-sheet-grabber></div><div data-sheet-title id="sheet-host-title"></div><div data-sheet-close>' + xButton() + '</div></div>' +
+        '<div data-sheet-body data-sheet-default></div>' +
+      '</div>';
+    panel = host.querySelector('[data-sheet-panel]');
+    defHead = panel.children[0]; defTitle = defHead.querySelector('[data-sheet-title]'); defBody = panel.children[1];
+    document.body.appendChild(host);
+  }
+
+  /* move a node into the host and remember where it came from */
+  function borrow(node, before){
+    var mark = document.createComment('sheet');
+    node.parentNode.insertBefore(mark, node);
+    panel.insertBefore(node, before || null);
+    current.moved.push([node, mark]);
+  }
+  function part(block, sel){
+    var list = block.querySelectorAll(sel);
+    for(var i = 0; i < list.length; i++){ if(!list[i].closest('[data-sheet-host]')) return list[i]; }
+    return null;
+  }
+
+  function mount(block, opts){
+    current = { block: block, moved: [], attrs: [], node: opts.node || null, returnFocus: opts.returnFocus || document.activeElement };
+    var name = block ? nameOf(block) : (opts.view || 'dynamic');
+    host.setAttribute('data-sheet-view', name);
+    host.setAttribute('data-sheet-mode', (block && block.getAttribute('data-sheet-mode')) || opts.mode || 'auto');
+    var w = (block && block.getAttribute('data-sheet-width')) || opts.width;
+    if(w) host.style.setProperty('--sheet-width', w); else host.style.removeProperty('--sheet-width');
+    if(block){                                       // mirror the block's data-* attributes (CSS/JS hooks)
+      Array.prototype.forEach.call(block.attributes, function(a){
+        if(a.name.indexOf('data-') === 0 && !SKIP.test(a.name) && !host.hasAttribute(a.name)){ host.setAttribute(a.name, a.value); current.attrs.push(a.name); }
+      });
     }
+    var head = block && part(block, '[data-sheet-head]'), body = block && part(block, '[data-sheet-body]'), foot = block && part(block, '[data-sheet-footer]');
+    var title = (block && block.getAttribute('data-sheet-title')) || opts.title || '';
+    defTitle.textContent = title;
+    if(head){ defHead.hidden = true; borrow(head, defHead); prepHead(head); } else defHead.hidden = false;
+    defBody.innerHTML = '';
+    if(body){ defBody.hidden = true; borrow(body, defBody); }
+    else {
+      defBody.hidden = false;
+      if(block){ Array.prototype.slice.call(block.childNodes).forEach(function(n){ if(n !== foot && !(n.matches && n.matches('[data-sheet-overlay],[data-sheet-panel]'))) { var m = document.createComment('sheet'); block.insertBefore(m, n); defBody.appendChild(n); current.moved.push([n, m]); } }); }
+      else if(opts.node){ defBody.appendChild(opts.node); }
+      else if(opts.html){ defBody.innerHTML = opts.html; }
+    }
+    if(foot) borrow(foot, null);
+    var t = panel.querySelector('[data-sheet-head]:not([hidden]) [data-sheet-title]');
+    if(t){ if(!t.id) t.id = 'sheet-t-' + Math.random().toString(36).slice(2,8); panel.setAttribute('aria-labelledby', t.id); panel.removeAttribute('aria-label'); }
+    else { panel.removeAttribute('aria-labelledby'); panel.setAttribute('aria-label', title || name.replace(/-/g,' ')); }
+  }
+  function prepHead(h){
+    var x = h.querySelector('[data-sheet-close]');
+    if(x && !x.querySelector('button, a')) x.innerHTML = xButton();
   }
 
-  function open(s, opts){
-    if(typeof s === 'string') s = byName(s);
-    if(!s) return null;
+  function unmount(){
+    if(!current) return;
+    current.moved.reverse().forEach(function(p){ var n = p[0], m = p[1]; if(m.parentNode){ m.parentNode.insertBefore(n, m); m.parentNode.removeChild(m); } });
+    current.attrs.forEach(function(a){ host.removeAttribute(a); });
+    host.className = '';                               // drop state classes a feature added (e.g. is-invalid)
+    defHead.hidden = false; defBody.hidden = false; defBody.innerHTML = '';
+    current = null;
+  }
+
+  function open(target, opts){
     opts = opts || {};
-    prep(s);
-    if(s.classList.contains('is-open')) return s;
-    if(s.parentNode !== document.body){ s.__sheetHome = s.parentNode; document.body.appendChild(s); }
-    s.__sheetReturn = opts.returnFocus || document.activeElement;
-    clearTimeout(s.__sheetTimer);
-    stack.push(s);
-    s.classList.add('is-open');
+    build();
+    var block = typeof target === 'string' ? byName(target) : target;
+    if(block && block.closest && block.closest('[data-sheet-host]')) block = current && current.block;   // already inside the host
+    if(!block && !opts.html && !opts.node) return null;
+    if(current && current.block === block && host.classList.contains('is-open')) return host;
+    if(current){ fire(current.block, 'sheet:close'); unmount(); }
+    clearTimeout(closeTimer);
+    mount(block, opts);
+    host.classList.add('is-open');
     document.documentElement.classList.add('sheet-lock');
-    requestAnimationFrame(function(){ requestAnimationFrame(function(){ s.classList.add('is-visible'); }); });
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){ host.classList.add('is-visible'); }); });
     setTimeout(function(){
-      var target = s.querySelector('[data-sheet-autofocus]');
-      if(!target){ var b = s.querySelector('[data-sheet-body]'); target = b && Array.prototype.find.call(b.querySelectorAll(FOCUSABLE), visible); }
-      target = target || s.querySelector('[data-sheet-panel]');
-      target && target.focus({preventScroll:true});
+      var f = panel.querySelector('[data-sheet-autofocus]');
+      if(!f){ var b = panel.querySelector('[data-sheet-body]:not([hidden])'); f = b && Array.prototype.find.call(b.querySelectorAll(FOCUSABLE), visible); }
+      (f || panel).focus({preventScroll:true});
     }, 60);
-    fire(s, 'sheet:open');
-    return s;
+    fire(block, 'sheet:open'); fire(host, 'sheet:open');
+    return host;
   }
+  function show(o){ o = o || {}; return open(null, o); }
 
-  function close(s, opts){
-    if(typeof s === 'string') s = byName(s);
-    s = s || stack[stack.length-1];
-    if(!s || !s.classList.contains('is-open')) return;
+  function close(target, opts){
+    if(!host || !current || !host.classList.contains('is-open')) return;
     opts = opts || {};
-    s.classList.remove('is-visible');
-    var i = stack.indexOf(s); if(i > -1) stack.splice(i,1);
-    if(!stack.length) document.documentElement.classList.remove('sheet-lock');
-    var done = function(){ s.classList.remove('is-open'); };
-    if(opts.instant) done(); else s.__sheetTimer = setTimeout(done, ANIM);
-    var r = s.__sheetReturn;
+    var block = current.block, r = current.returnFocus;
+    host.classList.remove('is-visible');
+    document.documentElement.classList.remove('sheet-lock');
+    fire(block, 'sheet:close'); fire(host, 'sheet:close');
+    var done = function(){ host.classList.remove('is-open'); unmount(); };
+    if(opts.instant) done(); else closeTimer = setTimeout(done, ANIM);
     if(!opts.noFocus && r && r.focus && document.contains(r)) r.focus({preventScroll:true});
-    fire(s, 'sheet:close');
   }
 
   document.addEventListener('click', function(e){
@@ -71,21 +146,25 @@
     var t = e.target.closest('[data-sheet-open]');
     if(t){ e.preventDefault(); open(t.getAttribute('data-sheet-open'), {returnFocus:t}); return; }
     var c = e.target.closest('[data-sheet-close]');
-    if(c){ var s = c.closest('[data-sheet]'); if(s && s.classList.contains('is-open')){ e.preventDefault(); close(s); } }
+    if(c && host && host.contains(c)){ e.preventDefault(); close(); }
   });
-
   document.addEventListener('keydown', function(e){
-    var s = stack[stack.length-1];
-    if(!s) return;
-    if(e.key === 'Escape'){ close(s); return; }
+    if(!host || !host.classList.contains('is-open')) return;
+    if(e.key === 'Escape'){ close(); return; }
     if(e.key === 'Tab'){
-      var f = Array.prototype.filter.call(s.querySelectorAll(FOCUSABLE), visible);
+      var f = Array.prototype.filter.call(panel.querySelectorAll(FOCUSABLE), visible);
       if(!f.length){ e.preventDefault(); return; }
       var a = f[0], z = f[f.length-1];
-      if(e.shiftKey && (document.activeElement === a || !s.contains(document.activeElement))){ e.preventDefault(); z.focus(); }
-      else if(!e.shiftKey && (document.activeElement === z || !s.contains(document.activeElement))){ e.preventDefault(); a.focus(); }
+      if(e.shiftKey && (document.activeElement === a || !panel.contains(document.activeElement))){ e.preventDefault(); z.focus(); }
+      else if(!e.shiftKey && (document.activeElement === z || !panel.contains(document.activeElement))){ e.preventDefault(); a.focus(); }
     }
   });
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', build); else build();
 
-  window.ShopFlowSheet = { open: open, close: close, top: function(){ return stack[stack.length-1] || null; } };
+  window.ShopFlowSheet = {
+    open: open, show: show, close: close,
+    top: function(){ return host && host.classList.contains('is-open') ? host : null; },
+    current: function(){ return current ? current.block : null; },
+    host: function(){ build(); return host; }
+  };
 })();

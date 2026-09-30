@@ -1,4 +1,4 @@
-/* ShopFlow – Quick Add v1.1.0 – product size picker built on ShopFlow Sheet (window.ShopFlowSheet).
+/* ShopFlow – Quick Add v1.1.1 – product size picker shown in the shared ShopFlow drawer (Sheet v1.2.0).
    Installed in Page Shell › embed "ShopFlow Core Code" (section 2).
    Card "Add to cart" / "+" on a product with 2+ sizes opens the [data-quick-add] sheet that sits next to the card in the
    same collection item (it carries its own sf-product context). One-size products add straight to cart.

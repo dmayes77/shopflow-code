@@ -5,11 +5,15 @@
    Core 2.0 upstream candidate. Installed in Page Shell › embed "ShopFlow Core Code" (section 0). */
 html{scrollbar-gutter:stable}
 
-/* ShopFlow – Sheet v1.1.0 – generic bottom sheet / dialog / left drawer. Core 2.0 upstream candidate (not commerce-specific).
-   Installed in Page Shell › embed "ShopFlow Core Code" (section 1).
-   Markup: [data-sheet="name"] > [data-sheet-overlay][data-sheet-close] + [data-sheet-panel] > [data-sheet-head] ([data-sheet-grabber], [data-sheet-close]) + [data-sheet-body] + [data-sheet-footer]
-   Modes: data-sheet-mode="auto" (default: bottom sheet ≤991px, centered dialog above) | "bottom" | "center" | "left" (full-height drawer from the left, all sizes). Width: --sheet-width. */
+/* ShopFlow – Sheet v1.2.0 – one shared drawer (bottom sheet / dialog / left or right drawer). Core 2.0 upstream candidate.
+   Installed in Page Shell › ShopFlow Core (dist/shopflow-core.css). The drawer itself ([data-sheet-host]) is built by
+   shopflow-sheet.js; content blocks ([data-sheet="name"] / [data-sheet-content="name"]) stay hidden in the page.
+   Modes: data-sheet-mode="auto" (default: bottom sheet ≤991px, centered dialog above) | "bottom" | "center" | "left" | "right". Width: --sheet-width. */
 [data-sheet]{position:fixed;inset:0;z-index:1002;display:none}
+[data-sheet-content]{display:none}
+[data-sheet-host] [hidden]{display:none!important}
+[data-sheet-head][data-sheet-default] [data-sheet-title]{margin:0 auto 0 .5rem;font-size:1.125rem;font-weight:700;line-height:1.3}
+[data-sheet-head][data-sheet-default] [data-sheet-title]:empty{display:none}
 [data-sheet].is-open{display:block}
 [data-sheet-overlay]{position:absolute;inset:0;background:rgba(17,17,17,.45);opacity:0;transition:opacity .2s ease}
 [data-sheet].is-visible [data-sheet-overlay]{opacity:1}
@@ -34,14 +38,18 @@ html.sheet-lock,html.sheet-lock body{overflow:hidden}
 [data-sheet][data-sheet-mode="left"] [data-sheet-panel]{left:0;top:0;bottom:0;right:auto;width:min(var(--sheet-width,22rem),88%);max-height:none;height:100%;border-radius:0 1rem 1rem 0;transform:translateX(-100%);opacity:1;transition:transform .26s cubic-bezier(.2,.8,.2,1)}
 [data-sheet][data-sheet-mode="left"].is-visible [data-sheet-panel]{transform:translateX(0)}
 [data-sheet][data-sheet-mode="left"] [data-sheet-footer]{padding-bottom:calc(1rem + env(safe-area-inset-bottom,0px))}
+/* right drawer (v1.2.0) */
+[data-sheet][data-sheet-mode="right"] [data-sheet-panel]{left:auto;right:0;top:0;bottom:0;width:min(var(--sheet-width,28rem),100%);max-height:none;height:100%;border-radius:1rem 0 0 1rem;transform:translateX(100%);opacity:1;transition:transform .26s cubic-bezier(.2,.8,.2,1)}
+[data-sheet][data-sheet-mode="right"].is-visible [data-sheet-panel]{transform:translateX(0)}
+[data-sheet][data-sheet-mode="right"] [data-sheet-footer]{padding-bottom:calc(1rem + env(safe-area-inset-bottom,0px))}
 @media (max-width:991px){
-[data-sheet]:not([data-sheet-mode="center"]):not([data-sheet-mode="left"]) [data-sheet-panel]{left:0;right:0;top:auto;bottom:0;width:min(36rem,100%);margin:0 auto;max-height:88vh;border-radius:1rem 1rem 0 0;transform:translateY(100%);opacity:1;transition:transform .26s cubic-bezier(.2,.8,.2,1)}
-[data-sheet]:not([data-sheet-mode="center"]):not([data-sheet-mode="left"]).is-visible [data-sheet-panel]{transform:translateY(0)}
-[data-sheet]:not([data-sheet-mode="center"]):not([data-sheet-mode="left"]) [data-sheet-head]{min-height:2.75rem;padding:.25rem .5rem 0}
-[data-sheet]:not([data-sheet-mode="center"]):not([data-sheet-mode="left"]) [data-sheet-grabber]{display:block;position:absolute;left:50%;top:.5rem;width:2.5rem;height:.3rem;margin-left:-1.25rem;border-radius:999px;background:var(--_theme---border--primary,#ccc)}
-[data-sheet]:not([data-sheet-mode="center"]):not([data-sheet-mode="left"]) [data-sheet-footer]{padding-bottom:calc(1rem + env(safe-area-inset-bottom,0px))}
+[data-sheet]:not([data-sheet-mode="center"]):not([data-sheet-mode="left"]):not([data-sheet-mode="right"]) [data-sheet-panel]{left:0;right:0;top:auto;bottom:0;width:min(36rem,100%);margin:0 auto;max-height:88vh;border-radius:1rem 1rem 0 0;transform:translateY(100%);opacity:1;transition:transform .26s cubic-bezier(.2,.8,.2,1)}
+[data-sheet]:not([data-sheet-mode="center"]):not([data-sheet-mode="left"]):not([data-sheet-mode="right"]).is-visible [data-sheet-panel]{transform:translateY(0)}
+[data-sheet]:not([data-sheet-mode="center"]):not([data-sheet-mode="left"]):not([data-sheet-mode="right"]) [data-sheet-head]{min-height:2.75rem;padding:.25rem .5rem 0}
+[data-sheet]:not([data-sheet-mode="center"]):not([data-sheet-mode="left"]):not([data-sheet-mode="right"]) [data-sheet-grabber]{display:block;position:absolute;left:50%;top:.5rem;width:2.5rem;height:.3rem;margin-left:-1.25rem;border-radius:999px;background:var(--_theme---border--primary,#ccc)}
+[data-sheet]:not([data-sheet-mode="center"]):not([data-sheet-mode="left"]):not([data-sheet-mode="right"]) [data-sheet-footer]{padding-bottom:calc(1rem + env(safe-area-inset-bottom,0px))}
 }
-@media (max-width:767px){[data-sheet]:not([data-sheet-mode="center"]):not([data-sheet-mode="left"]) [data-sheet-panel]{width:100%}}
+@media (max-width:767px){[data-sheet]:not([data-sheet-mode="center"]):not([data-sheet-mode="left"]):not([data-sheet-mode="right"]) [data-sheet-panel]{width:100%}}
 @media (prefers-reduced-motion:reduce){[data-sheet-panel],[data-sheet-overlay]{transition:none}}
 
 /* ShopFlow – Quick Add v1.1.0 – size picker content, built on ShopFlow Sheet ([data-sheet]). Core 2.0 tokens.

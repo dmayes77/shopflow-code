@@ -1,4 +1,4 @@
-/* ShopFlow – Product Page v1.2.6 – layout for the Storesynk product template ([data-pdp] on .product-container-2).
+/* ShopFlow – Product Page v1.2.7 – layout for the Storesynk product template ([data-pdp] on .product-container-2).
    Desktop ≥992: gallery | info | sticky buy card. Phone/tablet: brand + title, gallery, options, buy card, Details accordion, sticky bar.
    Installed on Products Template › embed "ShopFlow PDP Code". Core 2.0 tokens. */
 [data-pdp]{padding-top:6.5rem;padding-bottom:4rem}
@@ -113,8 +113,8 @@
 [data-pdp-label-row]{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;margin-bottom:.625rem}
 [data-pdp-label-row] > .label{margin-bottom:0!important}
 [data-pdp-size-guide].is-placed{display:inline;padding:0;border:0;background:none;font-size:.8125rem;font-weight:600;color:var(--_theme---text--accent,#cc5200);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
-[data-sheet="size-guide"]{--sheet-width:34rem}
-[data-sheet="size-guide"] [data-sheet-title]{margin:0 auto 0 .5rem;font-size:1.125rem;font-weight:700}
+[data-sheet-view="size-guide"]{--sheet-width:34rem}
+[data-sheet-view="size-guide"] [data-sheet-title]{margin:0 auto 0 .5rem;font-size:1.125rem;font-weight:700}
 [data-pdp-size-table]{width:100%;margin:0 0 1rem;border-collapse:collapse;font-size:.9375rem}
 [data-pdp-size-table] th,[data-pdp-size-table] td{padding:.625rem .5rem;text-align:left;border-bottom:1px solid var(--_theme---border--subtle,#eee)}
 [data-pdp-size-table] th{font-size:.75rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--_theme---text--muted,#6b6b6b)}
