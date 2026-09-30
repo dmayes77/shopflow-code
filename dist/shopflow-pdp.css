@@ -1,4 +1,4 @@
-/* ShopFlow – Product Page v1.2.7 – layout for the Storesynk product template ([data-pdp] on .product-container-2).
+/* ShopFlow – Product Page v1.2.8 – layout for the Storesynk product template ([data-pdp] on .product-container-2).
    Desktop ≥992: gallery | info | sticky buy card. Phone/tablet: brand + title, gallery, options, buy card, Details accordion, sticky bar.
    Installed on Products Template › embed "ShopFlow PDP Code". Core 2.0 tokens. */
 [data-pdp]{padding-top:6.5rem;padding-bottom:4rem}
@@ -131,9 +131,7 @@
 [data-pdp-details] .product-description{padding-bottom:.25rem}
 /* size buttons: rounded squares with short labels (S / M / L); longer values like "One size" stay a wider rounded rectangle */
 [data-pdp] .custom-option-value .pill-button{display:inline-flex;align-items:center;justify-content:center;min-width:3rem;height:3rem;padding:0 .875rem;border-radius:var(--_surface---radius--small,.5rem);font-weight:600}
-[data-pdp] .pill-button[data-short]{width:3rem;padding:0}
-[data-pdp] .pill-button[data-short] [sf-show-option-title]{display:none}
-[data-pdp] .pill-button[data-short]::after{content:attr(data-short)}
+[data-pdp] .pill-button[data-short]{padding:0}
 /* phones: quantity and Add to cart side by side, Buy now full width */
 @media (max-width:991px){
 [data-pdp-buy]{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:.75rem;row-gap:.875rem;align-items:center}

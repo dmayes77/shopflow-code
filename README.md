@@ -15,10 +15,11 @@ layout, behavior and accessibility on top of Storesynk's `sf-*` attributes.
 | `shopflow-page-stability.css` | 1.0.0 | Page Shell › embed **ShopFlow Core Code** (section 0) | Core 2.0 candidate |
 | `shopflow-sheet.css` / `.js` | 1.2.0 | Page Shell › embed **ShopFlow Core Code** (section 1) – the shared drawer | Core 2.0 candidate |
 | `shopflow-quick-add.css` / `.js` | 1.1.0 / 1.1.1 | Page Shell › embed **ShopFlow Core Code** (section 2) | ShopFlow |
+| `shopflow-size-labels.css` / `.js` | 1.0.0 | Page Shell › ShopFlow Core – every size button shows S / M / L in a rounded square | ShopFlow |
 | `shopflow-cart-page-bg.css` | 1.0.0 | Page Shell › embed **ShopFlow Core Code** (section 3) | ShopFlow |
 | `shopflow-cart-drawer.css` / `.js` | 1.0.5 / 1.0.3 | Page Shell › cart embed **Popup CSS** | ShopFlow |
 | `shopflow-mobile-nav.css` / `.js` | 1.0.1 / 1.0.2 | Navigation / OYG › embed **ShopFlow Mobile Nav Code** | ShopFlow |
-| `shopflow-pdp.css` / `.js` | 1.2.7 / 1.2.6 | Products Template › embed **ShopFlow PDP Code** | ShopFlow |
+| `shopflow-pdp.css` / `.js` | 1.2.8 | Products Template › embed **ShopFlow PDP Code** | ShopFlow |
 | `shopflow-collection-filters.css` | 1.0.7 | Shop All › filters embed (`<link id="shopflow-collection-filters-css">`) | ShopFlow |
 | `shopflow-collection-filters.js` | 1.0.7 | Shop All › filters embed | ShopFlow |
 | `shopflow-product-card-quick-add.css` | 1.1.0 | Product Card component (mobile "+" button) | ShopFlow |
@@ -57,7 +58,8 @@ for the drawer itself.
 - Shapes: no pill shapes on the storefront. Badges, buttons, size options and quantity boxes use Core 2.0
   `Radius/small` (`--_surface---radius--small`, 8px). Icon-only buttons (close ✕, share, cart count, card "+",
   cart delete) stay circles.
-- Size buttons on the product page show S / M / L; Shopify keeps the full size names.
+- Size buttons everywhere (product page, Quick Add, anything added later) show S / M / L in a rounded square
+  (`shopflow-size-labels`); Shopify keeps the full size names, which stay in the "Size:" label, tooltip and cart.
 - Product page policies (shipping, returns, pickup, size chart) are placeholder copy for the proof of concept and
   live as editable text in the Products Template, not in code.
 
@@ -65,7 +67,7 @@ for the drawer itself.
 
 - `javascript/` – the sources you edit (one feature per file, version in each file header).
 - `dist/` – what Webflow loads. Built by `sh build.sh`; never edit by hand.
-  - `shopflow-core.css` / `.js` = page stability + sheet + quick add + cart page background (every page).
+  - `shopflow-core.css` / `.js` = page stability + sheet + quick add + size labels + cart page background (every page).
   - `shopflow-pdp`, `shopflow-cart-drawer`, `shopflow-mobile-nav`, `shopflow-collection-filters` (`.css` / `.js`).
 - `build.sh` – rebuilds `dist/`.
 

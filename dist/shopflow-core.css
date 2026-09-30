@@ -1,4 +1,4 @@
-/* ShopFlow – shopflow-core.css – built from: shopflow-page-stability.css shopflow-sheet.css shopflow-quick-add.css shopflow-cart-page-bg.css */
+/* ShopFlow – shopflow-core.css – built from: shopflow-page-stability.css shopflow-sheet.css shopflow-quick-add.css shopflow-size-labels.css shopflow-cart-page-bg.css */
 
 /* ShopFlow – Page stability v1.0.0 – always reserve the scrollbar's space, so the page doesn't shift sideways when it grows
    past one screen (opening an accordion) or when a drawer locks scrolling. No effect with overlay scrollbars (phones, default macOS).
@@ -77,6 +77,13 @@ html.sheet-lock,html.sheet-lock body{overflow:hidden}
 [data-quick-add-sizes] [sf-option-value]:focus-visible .pill-button{outline:2px solid var(--_theme---focus--ring,#f60);outline-offset:2px}
 [data-quick-add] [data-sheet-footer] .button{display:flex;width:100%;justify-content:center}
 [data-quick-add] [data-sheet-footer] .button.is-waiting{opacity:.55}
+
+/* ShopFlow – Size Labels v1.0.0 – universal rounded-square size buttons (S / M / L…). Core 2.0 tokens (Radius/small).
+   Installed in Page Shell › ShopFlow Core (dist/shopflow-core.css). data-short is set by shopflow-size-labels.js;
+   sizes without a short form (e.g. "One size") keep their full text. */
+.pill-button[data-short]{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;width:3rem;min-width:3rem;height:3rem;padding:0;border-radius:var(--_surface---radius--small,.5rem);font-size:0;line-height:1}
+.pill-button[data-short] > *{display:none}
+.pill-button[data-short]::after{content:attr(data-short);font-size:1rem;font-weight:600;letter-spacing:.01em}
 
 /* ShopFlow – Cart Page Background v1.0.0 – installed in Page Shell › embed "ShopFlow Core Code" (section 3).
    Android Chrome paints the page background into the strip behind the gesture bar, below fixed elements.

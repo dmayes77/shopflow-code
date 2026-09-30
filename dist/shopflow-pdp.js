@@ -1,4 +1,4 @@
-/* ShopFlow – Product Page v1.2.6 – option labels ("Size: Small"), selection summary, sale badge + "Save $X", share button,
+/* ShopFlow – Product Page v1.2.8 – option labels ("Size: Small"), selection summary, sale badge + "Save $X", share button,
    stock status, size guide link, description preview ("Read more"), Details open on desktop, sticky add-to-cart bar.
    Storesynk owns variants and cart: the selected option has .sf-active; sold-out variants put .sf-out-of-stock on Add to cart. */
 (function(){ function init(){
@@ -31,20 +31,9 @@
   var qtyBlock = buy && buy.querySelector('.product-container_quantity-block'), stock;
   if(qtyBlock && mainAtc){ stock = document.createElement('span'); stock.setAttribute('data-pdp-stock',''); qtyBlock.appendChild(stock); }
 
-  /* size buttons: show S / M / L (the full name stays in the "Size:" label, the tooltip and Shopify).
-     Runs on every refresh because Storesynk fills the option names after load. */
-  var SHORT = {'xx-small':'XXS','x-small':'XS','extra small':'XS','small':'S','medium':'M','large':'L','x-large':'XL','extra large':'XL','xx-large':'XXL','2x-large':'2XL','3x-large':'3XL'};
-  function shortLabels(){
-    root.querySelectorAll('.custom-option-value').forEach(function(item){
-      var pill = item.querySelector('.pill-button'); if(!pill) return;
-      var v = (item.getAttribute('sf-option-value') || item.textContent || '').trim(), s = SHORT[v.toLowerCase()];
-      if(v && item.getAttribute('title') !== v) item.setAttribute('title', v);
-      if(s && pill.getAttribute('data-short') !== s) pill.setAttribute('data-short', s);
-    });
-  }
+  /* size buttons: S / M / L squares come from shopflow-size-labels (ShopFlow Core, every page). */
 
   function refresh(){
-    shortLabels();
     var parts = [];
     groups().forEach(function(g){
       var label = g.querySelector('.label'); if(!label) return;
