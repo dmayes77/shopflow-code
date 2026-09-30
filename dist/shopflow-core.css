@@ -1,0 +1,76 @@
+/* ShopFlow – shopflow-core.css – built from: shopflow-page-stability.css shopflow-sheet.css shopflow-quick-add.css shopflow-cart-page-bg.css */
+
+/* ShopFlow – Page stability v1.0.0 – always reserve the scrollbar's space, so the page doesn't shift sideways when it grows
+   past one screen (opening an accordion) or when a drawer locks scrolling. No effect with overlay scrollbars (phones, default macOS).
+   Core 2.0 upstream candidate. Installed in Page Shell › embed "ShopFlow Core Code" (section 0). */
+html{scrollbar-gutter:stable}
+
+/* ShopFlow – Sheet v1.1.0 – generic bottom sheet / dialog / left drawer. Core 2.0 upstream candidate (not commerce-specific).
+   Installed in Page Shell › embed "ShopFlow Core Code" (section 1).
+   Markup: [data-sheet="name"] > [data-sheet-overlay][data-sheet-close] + [data-sheet-panel] > [data-sheet-head] ([data-sheet-grabber], [data-sheet-close]) + [data-sheet-body] + [data-sheet-footer]
+   Modes: data-sheet-mode="auto" (default: bottom sheet ≤991px, centered dialog above) | "bottom" | "center" | "left" (full-height drawer from the left, all sizes). Width: --sheet-width. */
+[data-sheet]{position:fixed;inset:0;z-index:1002;display:none}
+[data-sheet].is-open{display:block}
+[data-sheet-overlay]{position:absolute;inset:0;background:rgba(17,17,17,.45);opacity:0;transition:opacity .2s ease}
+[data-sheet].is-visible [data-sheet-overlay]{opacity:1}
+[data-sheet-panel]{position:absolute;left:50%;top:50%;display:flex;flex-direction:column;width:min(var(--sheet-width,30rem),calc(100% - 2rem));max-height:min(40rem,calc(100vh - 2rem));overflow:hidden;border-radius:1rem;background:var(--_theme---background--primary,#fff);color:var(--_theme---text--primary,#111);box-shadow:0 24px 60px rgba(17,17,17,.25);transform:translate(-50%,-46%);opacity:0;transition:transform .22s ease,opacity .22s ease;font-size:.9375rem;line-height:1.4;outline:none}
+[data-sheet].is-visible [data-sheet-panel]{transform:translate(-50%,-50%);opacity:1}
+[data-sheet-head]{position:relative;display:flex;align-items:center;justify-content:flex-end;gap:.75rem;flex:none;min-height:3rem;padding:.5rem .75rem 0}
+[data-sheet-grabber]{display:none}
+[data-sheet-head] [data-sheet-close]{display:inline-flex;margin-left:auto}
+[data-sheet-x]{display:inline-flex;align-items:center;justify-content:center;width:2.5rem;height:2.5rem;margin:0;padding:0;border:0;border-radius:999px;background:none;color:inherit;cursor:pointer}
+[data-sheet-x]:hover{background:var(--_theme---background--secondary,#f5f3ee)}
+[data-sheet-x]:focus-visible{outline:2px solid var(--_theme---focus--ring,#f60);outline-offset:2px}
+[data-sheet-body]{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:0 1.25rem 1.25rem}
+[data-sheet-footer]{display:flex;flex-direction:column;gap:.625rem;flex:none;padding:1rem 1.25rem 1.25rem;border-top:1px solid var(--_theme---border--subtle,#e5e5e5);background:var(--_theme---background--primary,#fff)}
+[data-sheet-footer]:empty{display:none}
+html.sheet-lock,html.sheet-lock body{overflow:hidden}
+/* bottom sheet */
+[data-sheet][data-sheet-mode="bottom"] [data-sheet-panel]{left:0;right:0;top:auto;bottom:0;width:min(36rem,100%);margin:0 auto;max-height:88vh;border-radius:1rem 1rem 0 0;transform:translateY(100%);opacity:1;transition:transform .26s cubic-bezier(.2,.8,.2,1)}
+[data-sheet][data-sheet-mode="bottom"].is-visible [data-sheet-panel]{transform:translateY(0)}
+[data-sheet][data-sheet-mode="bottom"] [data-sheet-grabber]{display:block;position:absolute;left:50%;top:.5rem;width:2.5rem;height:.3rem;margin-left:-1.25rem;border-radius:999px;background:var(--_theme---border--primary,#ccc)}
+[data-sheet][data-sheet-mode="bottom"] [data-sheet-footer]{padding-bottom:calc(1rem + env(safe-area-inset-bottom,0px))}
+/* left drawer */
+[data-sheet][data-sheet-mode="left"] [data-sheet-panel]{left:0;top:0;bottom:0;right:auto;width:min(var(--sheet-width,22rem),88%);max-height:none;height:100%;border-radius:0 1rem 1rem 0;transform:translateX(-100%);opacity:1;transition:transform .26s cubic-bezier(.2,.8,.2,1)}
+[data-sheet][data-sheet-mode="left"].is-visible [data-sheet-panel]{transform:translateX(0)}
+[data-sheet][data-sheet-mode="left"] [data-sheet-footer]{padding-bottom:calc(1rem + env(safe-area-inset-bottom,0px))}
+@media (max-width:991px){
+[data-sheet]:not([data-sheet-mode="center"]):not([data-sheet-mode="left"]) [data-sheet-panel]{left:0;right:0;top:auto;bottom:0;width:min(36rem,100%);margin:0 auto;max-height:88vh;border-radius:1rem 1rem 0 0;transform:translateY(100%);opacity:1;transition:transform .26s cubic-bezier(.2,.8,.2,1)}
+[data-sheet]:not([data-sheet-mode="center"]):not([data-sheet-mode="left"]).is-visible [data-sheet-panel]{transform:translateY(0)}
+[data-sheet]:not([data-sheet-mode="center"]):not([data-sheet-mode="left"]) [data-sheet-head]{min-height:2.75rem;padding:.25rem .5rem 0}
+[data-sheet]:not([data-sheet-mode="center"]):not([data-sheet-mode="left"]) [data-sheet-grabber]{display:block;position:absolute;left:50%;top:.5rem;width:2.5rem;height:.3rem;margin-left:-1.25rem;border-radius:999px;background:var(--_theme---border--primary,#ccc)}
+[data-sheet]:not([data-sheet-mode="center"]):not([data-sheet-mode="left"]) [data-sheet-footer]{padding-bottom:calc(1rem + env(safe-area-inset-bottom,0px))}
+}
+@media (max-width:767px){[data-sheet]:not([data-sheet-mode="center"]):not([data-sheet-mode="left"]) [data-sheet-panel]{width:100%}}
+@media (prefers-reduced-motion:reduce){[data-sheet-panel],[data-sheet-overlay]{transition:none}}
+
+/* ShopFlow – Quick Add v1.1.0 – size picker content, built on ShopFlow Sheet ([data-sheet]). Core 2.0 tokens.
+   Installed in Page Shell › embed "ShopFlow Core Code" (section 2). */
+[data-quick-add] [data-sheet-body]{display:grid;grid-template-columns:6.5rem 1fr;grid-template-areas:"img info" "opts opts";column-gap:1rem;row-gap:1.25rem;align-items:start}
+[data-quick-add-image]{grid-area:img;width:6.5rem;height:auto;aspect-ratio:1;object-fit:cover;border-radius:.5rem;background:var(--_theme---background--secondary,#f5f3ee)}
+[data-quick-add-info]{grid-area:info;display:flex;flex-direction:column;gap:.5rem;min-width:0}
+[data-quick-add-title]{font-size:1rem;font-weight:500;line-height:1.35;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;text-transform:capitalize}
+[data-quick-add-price-row]{display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap}
+[data-quick-add-price]{font-size:1.375rem;font-weight:700}
+[data-quick-add-compare]{font-size:.875rem;color:var(--_theme---text--muted,#777);text-decoration:line-through}
+[data-quick-add-compare]:empty{display:none}
+[data-quick-add-options]{grid-area:opts}
+[data-quick-add-label]{display:flex;gap:.35rem;margin:0 0 .625rem;font-size:.9375rem}
+[data-quick-add-option-name]{font-weight:700}
+[data-quick-add-option-name]::after{content:":"}
+[data-quick-add-selected]{color:var(--_theme---text--secondary,#555)}
+[data-quick-add].is-invalid [data-quick-add-selected]{color:#c0392b;font-weight:600}
+[data-quick-add-sizes]{display:flex;flex-wrap:wrap;gap:.5rem;margin:0;padding:0}
+[data-quick-add-sizes] > [sf-option-value]{margin:0;padding:0;list-style:none}
+[data-quick-add-sizes] .pill-button{display:inline-flex;align-items:center;justify-content:center;min-width:3.25rem;height:2.75rem;margin:0;padding:0 1rem;border:1.5px solid var(--_theme---border--primary,#ccc);border-radius:.5rem;background:var(--_theme---background--primary,#fff);color:inherit;font-weight:500;cursor:pointer;user-select:none;transition:border-color .15s ease,box-shadow .15s ease}
+[data-quick-add-sizes] .pill-button:hover{border-color:var(--_theme---text--primary,#111)}
+[data-quick-add-sizes] [sf-option-value].is-selected .pill-button{border-color:var(--_theme---action--primary,#f60);box-shadow:inset 0 0 0 1px var(--_theme---action--primary,#f60);font-weight:700}
+[data-quick-add-sizes] [sf-option-value]:focus-visible{outline:none}
+[data-quick-add-sizes] [sf-option-value]:focus-visible .pill-button{outline:2px solid var(--_theme---focus--ring,#f60);outline-offset:2px}
+[data-quick-add] [data-sheet-footer] .button{display:flex;width:100%;justify-content:center}
+[data-quick-add] [data-sheet-footer] .button.is-waiting{opacity:.55}
+
+/* ShopFlow – Cart Page Background v1.0.0 – installed in Page Shell › embed "ShopFlow Core Code" (section 3).
+   Android Chrome paints the page background into the strip behind the gesture bar, below fixed elements.
+   The body uses Core 2.0 bg-light (cream), so while the cart is open we switch it to the theme background (white). */
+html:has([sf-cart-popup].sf-cart-opened),html:has([sf-cart-popup].sf-cart-opened) body{background-color:var(--_theme---background--primary,#fff)!important}
