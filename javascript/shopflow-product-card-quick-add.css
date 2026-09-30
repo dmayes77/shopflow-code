@@ -1,0 +1,16 @@
+/* ShopFlow Product Card mobile quick add v1.1.0: + in a circle on phones, full Add to Cart on desktop.
+   v1.1.0: circle size locked, + pinned to center, Storesynk loading spinner stacked in the same spot and swapped with the + (no shifting). */
+@media (max-width:767px){
+.product-card .product-card-media{position:relative}
+.product-card .product-card-actions{position:absolute;top:auto;left:auto;right:.5rem;bottom:.5rem;z-index:2;width:auto;margin:0;padding:0;opacity:1!important;transform:none!important}
+.product-card .product-card-actions .button{position:relative;flex:none;box-sizing:border-box;width:2.5rem;height:2.5rem;min-width:2.5rem;max-width:2.5rem;min-height:2.5rem;max-height:2.5rem;padding:0;gap:0;overflow:hidden;border-radius:999px;box-shadow:0 2px 10px rgba(17,17,17,.22);justify-content:center;align-items:center}
+.product-card .product-card-actions .button-text{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.product-card .product-card-actions .button::before{content:"";position:absolute;left:50%;top:50%;width:1.125rem;height:1.125rem;margin:-.5625rem 0 0 -.5625rem;background:currentColor;transition:opacity .15s ease;pointer-events:none;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 4v16M4 12h16' stroke='black' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 4v16M4 12h16' stroke='black' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat}
+.product-card .product-card-actions .button > :not(.button-text):not(.button-action-overlay){position:absolute!important;left:50%;top:50%;transform:translate(-50%,-50%);margin:0}
+.product-card .product-card-actions .button-action-overlay{display:flex;align-items:center;justify-content:center;padding:0;font-size:0;line-height:0;color:inherit}
+.product-card .product-card-actions .button-action-overlay > *{max-width:1.25rem;max-height:1.25rem;margin:0;flex:none}
+.product-card .product-card-actions .button:has(.button-action-overlay > *)::before,
+.product-card .product-card-actions .button:has([class*="spinner"],[class*="loading"],[class*="loader"])::before,
+.product-card .product-card-actions .button[class*="loading"]::before,
+.product-card .product-card-actions .button:has(.button-action-overlay[class*="loading"])::before{opacity:0}
+}

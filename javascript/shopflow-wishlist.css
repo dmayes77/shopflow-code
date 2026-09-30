@@ -1,0 +1,9 @@
+/* PARKED – not installed on the site (removed from the Page Shell 2026-09-30). Kept for when the wishlist comes back.
+   ShopFlow – Wishlist v1.0.1 – heart button look. Storesynk marks saved hearts with .sf-active (docs say .sf-wishlist-active; both handled). Saved list lives in the browser (localStorage "_sf-wishlist"). Core 2.0 tokens. */
+[sf-add-to-wishlist]{cursor:pointer;-webkit-tap-highlight-color:transparent}
+[sf-add-to-wishlist] svg{display:block;width:1.25rem;height:1.25rem;fill:transparent;stroke:currentColor;stroke-width:2;stroke-linejoin:round;transition:fill .15s ease,transform .15s ease}
+[sf-add-to-wishlist].sf-active,[sf-add-to-wishlist].sf-wishlist-active{color:var(--_theme---action--primary,#FF6A00)}
+[sf-add-to-wishlist].sf-active svg,[sf-add-to-wishlist].sf-wishlist-active svg{fill:currentColor}
+[sf-add-to-wishlist]:active svg{transform:scale(.88)}
+[sf-add-to-wishlist]:focus-visible{outline:2px solid var(--_theme---focus--ring,#f60);outline-offset:2px}
+/* the round white button itself is the Webflow class .product-card-wishlist (visible in the Designer) */

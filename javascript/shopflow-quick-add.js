@@ -1,0 +1,73 @@
+/* ShopFlow – Quick Add v1.1.0 – product size picker built on ShopFlow Sheet (window.ShopFlowSheet).
+   Installed in Page Shell › embed "ShopFlow Core Code" (section 2).
+   Card "Add to cart" / "+" on a product with 2+ sizes opens the [data-quick-add] sheet that sits next to the card in the
+   same collection item (it carries its own sf-product context). One-size products add straight to cart.
+   Storesynk handles variant selection (sf-change-option / sf-option-value) and cart (sf-add-to-cart / sf-buy-now). */
+(function(){
+  if(window.__sfQuickAdd) return; window.__sfQuickAdd = true;
+  var CARD_BTN = '.product-card-actions button, .product-card-actions [sf-add-to-cart]';
+
+  function sheetFor(btn){
+    var item = btn.closest('.w-dyn-item, [role="listitem"]');
+    if(!item) return null;
+    if(!item.__sfSheet) item.__sfSheet = item.querySelector('[data-quick-add]');
+    return item.__sfSheet;
+  }
+  function options(s){ return s.querySelectorAll('[data-quick-add-sizes] [sf-option-value]'); }
+  function selected(s){ return s.querySelector('[data-quick-add-sizes] [sf-option-value].is-selected'); }
+  function setLabel(s, txt){ var l = s.querySelector('[data-quick-add-selected]'); if(l) l.textContent = txt; }
+  function refresh(s){
+    var sel = selected(s);
+    s.classList.remove('is-invalid');
+    setLabel(s, sel ? (sel.getAttribute('sf-option-value') || sel.textContent.trim()) : 'Select');
+    s.querySelectorAll('[data-sheet-footer] .button').forEach(function(b){ b.classList.toggle('is-waiting', !sel); });
+  }
+  function prep(s){
+    if(s.__qaReady) return; s.__qaReady = true;
+    var list = s.querySelector('[data-quick-add-sizes]');
+    if(list) list.setAttribute('role','radiogroup');
+    options(s).forEach(function(o){ o.setAttribute('role','radio'); o.setAttribute('tabindex','0'); o.setAttribute('aria-checked','false'); });
+  }
+  function reset(s){
+    options(s).forEach(function(o){ o.classList.remove('is-selected'); o.setAttribute('aria-checked','false'); });
+    refresh(s);
+  }
+
+  /* 1. Intercept the card button before Storesynk sees it (capture phase). */
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest && e.target.closest(CARD_BTN);
+    if(!btn || btn.closest('[data-quick-add]') || !window.ShopFlowSheet) return;
+    var s = sheetFor(btn);
+    if(!s) return;
+    prep(s);
+    if(options(s).length < 2) return;            // one size: let Storesynk add it
+    e.preventDefault(); e.stopImmediatePropagation();
+    reset(s);
+    ShopFlowSheet.open(s, {returnFocus: btn});
+  }, true);
+
+  /* 2. Inside the sheet: size pick and the "choose a size first" gate. */
+  document.addEventListener('click', function(e){
+    var s = e.target.closest && e.target.closest('[data-quick-add]');
+    if(!s) return;
+    var opt = e.target.closest('[data-quick-add-sizes] [sf-option-value]');
+    if(opt){
+      options(s).forEach(function(o){ var on = o === opt; o.classList.toggle('is-selected', on); o.setAttribute('aria-checked', on ? 'true' : 'false'); });
+      refresh(s); return;                         // Storesynk also receives this click and switches the variant
+    }
+    var act = e.target.closest('[data-sheet-footer] [sf-add-to-cart], [data-sheet-footer] [sf-buy-now]');
+    if(act){
+      if(options(s).length > 1 && !selected(s)){
+        e.preventDefault(); e.stopImmediatePropagation();
+        s.classList.add('is-invalid'); setLabel(s, 'Please select a size');
+        var f = options(s)[0]; f && f.focus({preventScroll:true});
+        return;
+      }
+      setTimeout(function(){ ShopFlowSheet.close(s, {instant:true, noFocus:true}); }, 150); // Storesynk opens the cart / checkout
+    }
+  }, true);
+
+  document.addEventListener('keydown', function(e){
+    if((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('[data-quick-add-sizes] [sf-option-value]')){ e.preventDefault(); e.target.click(); }
+  });
+})();

@@ -1,0 +1,42 @@
+/* ShopFlow Collection Filters v1.0.7 – CSS (static).
+   Installed on Shop All › filters embed (first child of .collection-filters) inside <style id="shopflow-collection-filters-css">.
+   v1.0.7: CSS moved out of the script (it was injected after load, causing a flash of the open panel on phones). The script
+   (shopflow-collection-filters.js) skips its own CSS injection when a style with this id already exists.
+   v1.0.5: while the filter panel is open, lift its Core 2.0 .padding-global wrapper above the navbar.
+   v1.0.6: panel still scrolls, but without a visible scrollbar.
+   Button shapes (Filter & Sort, Show results) come from the Webflow classes and use Core 2.0 Radius/small. */
+.collection-filters .w-dyn-empty{display:none}
+.collection-filters [hidden]{display:none!important}
+[data-filters-empty]:not(.is-active){display:none!important}
+.filter-option{user-select:none}
+.filter-option:hover .filter-option-box{border-color:var(--_theme---text--primary)}
+.filter-option.sf-active .filter-option-box{background-color:var(--_theme---action--primary);border-color:var(--_theme---action--primary)}
+.filter-option.sf-active .filter-option-box::after{content:"";position:absolute;left:50%;top:45%;width:.3rem;height:.55rem;border:solid var(--_theme---action--primary-text);border-width:0 2px 2px 0;transform:translate(-50%,-50%) rotate(45deg)}
+.filter-option:focus-visible,.filter-group-toggle:focus-visible,.collection-filters-trigger:focus-visible,.collection-filters-clear:focus-visible,.collection-filters-close:focus-visible,.collection-filters-apply:focus-visible{outline:2px solid var(--_theme---focus--ring);outline-offset:2px}
+.filter-group.is-collapsed .filter-group-content{display:none}
+.filter-group.is-collapsed .filter-group-chevron{transform:rotate(45deg)}
+.filter-group[hidden]{display:none}
+.collection-filters-clear{visibility:hidden}
+.collection-filters.has-active-filters .collection-filters-clear{visibility:visible}
+@media (min-width:992px){
+.collection-filters{max-height:calc(100vh - 96px - 1rem);overflow-y:auto;overscroll-behavior:contain}
+}
+@media (max-width:991px){
+.collection-filters{position:static;flex:none;width:100%}
+.collection-filters-trigger{display:inline-flex}
+.collection-filters-overlay{display:block;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .25s ease}
+.collection-filters-panel{position:fixed;top:0;bottom:0;left:0;z-index:2001;width:min(22rem,88vw);padding:0 1.25rem;background-color:var(--_theme---background--primary);box-shadow:0 0 2rem rgba(0,0,0,.15);transform:translateX(-100%);visibility:hidden;transition:transform .25s ease,visibility 0s linear .25s}
+.collection-filters.is-open .collection-filters-panel{transform:none;visibility:visible;transition:transform .25s ease}
+.collection-filters.is-open .collection-filters-overlay{opacity:1;pointer-events:auto}
+.collection-filters-head{display:flex}
+.collection-filters-body{flex:1 1 auto;overflow-y:auto;overscroll-behavior:contain}
+.collection-filters-foot{padding-bottom:1rem;border-top:1px solid var(--_theme---border--subtle)}
+.collection-filters-apply{display:inline-flex}
+html.filters-open{overflow:hidden}
+}
+@media (prefers-reduced-motion:reduce){.collection-filters-panel,.collection-filters-overlay,.filter-group-chevron{transition:none!important}}
+/* v1.0.5 */
+html.filters-open .padding-global:has([data-collection-filters].is-open),html.filters-open .shell-main:has([data-collection-filters].is-open){z-index:1001}
+/* v1.0.6 */
+.collection-filters,.collection-filters-panel,.collection-filters-body{scrollbar-width:none!important;-ms-overflow-style:none}
+.collection-filters::-webkit-scrollbar,.collection-filters-panel::-webkit-scrollbar,.collection-filters-body::-webkit-scrollbar{display:none;width:0;height:0}

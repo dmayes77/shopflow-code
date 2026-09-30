@@ -1,0 +1,4 @@
+/* ShopFlow – Page stability v1.0.0 – always reserve the scrollbar's space, so the page doesn't shift sideways when it grows
+   past one screen (opening an accordion) or when a drawer locks scrolling. No effect with overlay scrollbars (phones, default macOS).
+   Core 2.0 upstream candidate. Installed in Page Shell › embed "ShopFlow Core Code" (section 0). */
+html{scrollbar-gutter:stable}

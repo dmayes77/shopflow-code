@@ -1,0 +1,32 @@
+/* ShopFlow – Mobile Nav v1.0.1 – left drawer menu built on ShopFlow Sheet v1.1.0 ([data-sheet-mode="left"]). Core 2.0 tokens.
+   Opened by the navbar hamburger (.navbar-compact_mobile-trigger); the old Webflow dropdown list is hidden.
+   Installed in Navigation / OYG › embed "ShopFlow Mobile Nav Code". v1.0.1: search field is a rounded square (Radius/small). */
+.navbar-compact_mobile-list{display:none!important}
+[data-mobile-nav]{--mnav-brand:var(--_theme---action--primary,#FF6A00);--mnav-line:var(--_theme---border--subtle,#ECE6DF);--mnav-tint:var(--_theme---background--secondary,#FFF7F0)}
+[data-mobile-nav] [data-sheet-panel]{font-size:1rem}
+[data-mobile-nav] [data-sheet-head]{justify-content:space-between;min-height:4rem;padding:.75rem .75rem .75rem 1.25rem;border-bottom:1px solid var(--mnav-line)}
+[data-mobile-nav] [data-sheet-head] [data-sheet-close]{margin-left:0}
+[data-mobile-nav] [data-sheet-x]{width:2.75rem;height:2.75rem}
+[data-mnav-logo]{display:inline-flex;align-items:center;height:2.5rem;max-width:9rem}
+[data-mnav-logo] img{display:block;height:100%;width:auto;max-width:100%;object-fit:contain}
+[data-mobile-nav] [data-sheet-body]{display:flex;flex-direction:column;padding:1rem 1.25rem 1.5rem}
+[data-mnav-search]{display:flex;align-items:center;gap:.75rem;min-height:3rem;padding:0 1rem;border:1.5px solid var(--mnav-line);border-radius:var(--_surface---radius--small,.5rem);color:var(--_theme---text--muted,#777);text-decoration:none;font-size:.9375rem}
+[data-mnav-search]::before{content:"";flex:none;width:1.125rem;height:1.125rem;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E") center/contain no-repeat}
+[data-mnav-feature]{position:relative;display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-top:1rem;min-height:5.5rem;padding:1rem 1.25rem;overflow:hidden;border-radius:1rem;background:var(--mnav-brand);color:#fff;text-decoration:none}
+[data-mnav-feature]::before{content:"";position:absolute;top:0;right:0;bottom:0;width:5.25rem;opacity:.18;background:repeating-conic-gradient(#fff 0 25%,transparent 0 50%) 0 0/1.5rem 1.5rem;-webkit-mask:linear-gradient(90deg,transparent,#000 60%);mask:linear-gradient(90deg,transparent,#000 60%)}
+[data-mnav-feature-title]{position:relative;font-size:1.25rem;font-weight:800;line-height:1.15}
+[data-mnav-feature-sub]{position:relative;margin-top:.25rem;font-size:.875rem;opacity:.9}
+[data-mnav-feature]::after{content:"";position:relative;flex:none;width:2.5rem;height:2.5rem;border-radius:999px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FF6A00' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14M13 6l6 6-6 6'/%3E%3C/svg%3E") center/1.25rem no-repeat}
+[data-mnav-label]{margin:1.5rem 0 .25rem;font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--_theme---text--muted,#777)}
+[data-mnav-link],[data-mnav-toggle]{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:3.25rem;margin:0;padding:0;border:0;border-bottom:1px solid var(--mnav-line);background:none;color:var(--_theme---text--primary,#111);font:inherit;font-size:1.0625rem;font-weight:500;text-align:left;text-decoration:none;cursor:pointer}
+[data-mnav-link]::after,[data-mnav-toggle]::after{content:"";flex:none;width:1rem;height:1rem;background:currentColor;opacity:.45;transition:transform .2s ease;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 6l6 6-6 6'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 6l6 6-6 6'/%3E%3C/svg%3E") center/contain no-repeat}
+[data-mnav-toggle]::after{transform:rotate(90deg)}
+[data-mnav-group].is-expanded [data-mnav-toggle]::after{transform:rotate(-90deg)}
+[data-mnav-group].is-expanded [data-mnav-toggle]{color:var(--mnav-brand)}
+[data-mnav-sub]{display:none;padding:.25rem 0 .5rem .75rem;border-bottom:1px solid var(--mnav-line)}
+[data-mnav-group].is-expanded [data-mnav-sub]{display:block}
+[data-mnav-sublink]{display:flex;align-items:center;min-height:2.75rem;color:var(--_theme---text--secondary,#555);font-size:1rem;text-decoration:none}
+[data-mnav-link]:hover,[data-mnav-sublink]:hover{color:var(--mnav-brand)}
+[data-mnav-link]:focus-visible,[data-mnav-toggle]:focus-visible,[data-mnav-sublink]:focus-visible,[data-mnav-search]:focus-visible,[data-mnav-feature]:focus-visible{outline:2px solid var(--_theme---focus--ring,#f60);outline-offset:2px}
+[data-mnav-note]{display:flex;align-items:center;gap:.5rem;font-size:.875rem;font-weight:600;color:var(--_theme---text--secondary,#555)}
+[data-mobile-nav] [data-sheet-footer]{background:var(--mnav-tint)}
