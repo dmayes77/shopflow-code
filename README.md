@@ -143,3 +143,15 @@ For version-pinned embeds, change `@vA.B.C` to `@vX.Y.Z` in Webflow and publish 
 move or reuse one; release a new number instead. Every ShopFlow jsDelivr embed (Page Shell core, cart drawer, mobile nav, product page and Shop All
 collection filters) points to `@main`, so pushing rebuilt files to the public repo updates the storefront without another Webflow edit. The core
 loader rotates its query key every five minutes to avoid a browser holding an obsolete branch build.
+
+**After every push, purge jsDelivr's `@main` cache** – the rotating key only stops browsers caching; jsDelivr itself can
+keep serving the previous `@main` build for up to ~12 hours. Open (or `curl`) the purge URL for each changed file:
+
+```sh
+for f in shopflow-core.js shopflow-core.css shopflow-cart-drawer.js shopflow-cart-drawer.css shopflow-pdp.js shopflow-pdp.css \
+         shopflow-mobile-nav.js shopflow-mobile-nav.css shopflow-collection-filters.js shopflow-collection-filters.css; do
+  curl -s "https://purge.jsdelivr.net/gh/dmayes77/shopflow-code@main/dist/$f" > /dev/null
+done
+```
+
+Browsers then pick up the new core files within five minutes (the next loader key).
