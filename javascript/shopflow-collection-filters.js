@@ -1,5 +1,13 @@
-/* ShopFlow – Collection Filters v1.0.7
+/* ShopFlow – Collection Filters v1.2.0
  * Behavior layer for the ShopFlow Collection Filters component (Storesynk-powered).
+ * v1.2.0: tag sections. A filter group marked data-filter-sections splits its chips into labelled sections from Shopify tag
+ *         prefixes ("Color: Orange" → section "Color", chip "Orange"). The prefix is never shown to shoppers: chips show only
+ *         the part after the colon, the section heading is the humanised prefix. The chips' sf-filter-value stays the full tag,
+ *         so Storesynk still matches Shopify. Chips stay inside the same Storesynk group, so filtering is unchanged.
+ *         Tags without a colon stay in the group's own list. data-filter-sections-order="Color,Style" sets the section order.
+ * v1.1.0: ≤991px the panel is a bottom sheet. Added: swipe down on the header closes it; aria-modal + Tab stays inside;
+ *         Sort becomes chips (built from the native <select sf-sort>, which stays in the page and still drives Storesynk);
+ *         only groups marked data-filter-collapsed can collapse on phones; "Clear all" is now labelled by the page ("Reset all").
  * v1.0.7: styles live in shopflow-collection-filters.css (loaded before the panel, so it never flashes open on phones);
  *         this script no longer carries or injects its own CSS.
  * Storesynk does the actual filtering (sf-filter / sf-option-filter / sf-filter-value /
@@ -31,6 +39,10 @@
  */
 (() => {
   const ACTIVE = 'sf-active';
+  const mqPhone = matchMedia('(max-width: 991px)');
+  // Shopify tag convention "Prefix: Value". The prefix only groups chips; it is never displayed on a chip.
+  const PREFIX_RE = /^\s*([^:\n]{1,32}?)\s*:\s*(\S.*)$/;
+  const humanise = t => t.replace(/[-_]+/g, ' ').replace(/\s+/g, ' ').trim().replace(/\b\w/g, c => c.toUpperCase());
   const q = (el, s) => el.querySelector(s);
   const qa = (el, s) => Array.from(el.querySelectorAll(s));
   // change-guarded writes (never touch the DOM when the value is already correct)
@@ -74,7 +86,11 @@
       t.setAttribute('aria-controls', c.id);
       const set = open => { g.classList.toggle('is-collapsed', !open); t.setAttribute('aria-expanded', String(open)); };
       set(g.dataset.filterCollapsed !== 'true');
-      t.addEventListener('click', e => { e.preventDefault(); set(g.classList.contains('is-collapsed')); });
+      t.addEventListener('click', e => {
+        e.preventDefault();
+        if (mqPhone.matches && g.dataset.filterCollapsed !== 'true') return;   // phones: only Brand / Collection collapse
+        set(g.classList.contains('is-collapsed'));
+      });
     });
 
     // Filter values behave like checkboxes for keyboard / screen readers
@@ -98,6 +114,56 @@
       const sorted = items.slice().sort((a, b) => rank(q(a, '[sf-filter-value]') || a) - rank(q(b, '[sf-filter-value]') || b));
       if (sorted.every((el, i) => el === items[i])) return;          // already in order: no DOM write
       sorted.forEach(el => parent.appendChild(el));
+    };
+
+    // Tag sections: "Color: Orange" → section "Color" with chip "Orange" (only for groups marked data-filter-sections)
+    const sectionGroups = groups.filter(g => g.hasAttribute('data-filter-sections'));
+    const sectionize = () => {
+      sectionGroups.forEach(g => {
+        const content = q(g, '.filter-group-content');
+        if (!content) return;
+        const baseList = q(content, '.filter-options');
+        qa(g, '.filter-option[sf-filter-value]').forEach(v => {
+          if (v.dataset.sfSec) return;
+          v.dataset.sfSec = '1';
+          const label = q(v, '.filter-option-label') || v;
+          const m = (label.textContent || v.getAttribute('sf-filter-value') || '').trim().match(PREFIX_RE);
+          if (!m) return;
+          setText(label, m[2].trim());                                   // chip shows only the value
+          const key = m[1].trim().toLowerCase();
+          let sec = qa(content, '.filter-subgroup').find(x => x.dataset.sec === key);
+          if (!sec) {
+            sec = document.createElement('div');
+            sec.className = 'filter-subgroup'; sec.dataset.sec = key;
+            sec.setAttribute('role', 'group');
+            const h = document.createElement('div');
+            h.className = 'filter-subgroup-title'; h.textContent = humanise(m[1]); h.id = `${g.dataset.filterGroup || 'group'}-sec-${key.replace(/[^a-z0-9]+/g, '-')}`;
+            sec.setAttribute('aria-labelledby', h.id);
+            const l = document.createElement('div');
+            l.className = baseList ? baseList.className : 'filter-options';
+            sec.append(h, l); content.appendChild(sec);
+          }
+          sec.querySelector('.filter-options, :scope > div:last-child').appendChild(v);
+        });
+        // section order (attribute, then A→Z) and A→Z chips inside sections
+        const order = (g.getAttribute('data-filter-sections-order') || '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean);
+        const secs = qa(content, '.filter-subgroup');
+        const rankSec = x => { const i = order.indexOf(x.dataset.sec); return i < 0 ? 999 : i; };
+        const sortedSecs = secs.slice().sort((a, b) => rankSec(a) - rankSec(b) || a.dataset.sec.localeCompare(b.dataset.sec));
+        if (!sortedSecs.every((x, i) => x === secs[i])) sortedSecs.forEach(x => content.appendChild(x));
+        secs.forEach(sec => {
+          const list = sec.lastElementChild;
+          const items = Array.from(list.children);
+          const txt = el => (q(el, '.filter-option-label') || el).textContent.trim();
+          const sorted = items.slice().sort((a, b) => txt(a).localeCompare(txt(b), undefined, { sensitivity: 'base' }));
+          if (!sorted.every((x, i) => x === items[i])) sorted.forEach(x => list.appendChild(x));
+        });
+        // if every chip moved into a section, the group's own title would be a redundant heading: hide it
+        const toggle = q(g, '[data-filter-toggle]');
+        const leftovers = baseList ? qa(baseList, '.filter-option[sf-filter-value]').length : 0;
+        if (toggle && secs.length && !leftovers) { setHidden(toggle, true); g.classList.remove('is-collapsed'); }
+        g.classList.add('is-sectioned');
+      });
     };
 
     // Option filters: de-dupe values, drop "Default Title", hide groups with < 2 choices
@@ -184,6 +250,76 @@
     document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
     matchMedia('(min-width: 992px)').addEventListener('change', e => { if (e.matches) close(); });
 
+    // Sort chips (phones): mirror the native <select sf-sort>; choosing a chip sets the select and fires its change event
+    const sortSel = q(root, 'select[sf-sort]');
+    const sortGroup = sortSel && sortSel.closest('.filter-group');
+    let chips = null;
+    if (sortSel && sortGroup && !q(sortGroup, '.sort-chips')) {
+      chips = document.createElement('div');
+      chips.className = 'sort-chips'; chips.setAttribute('role', 'radiogroup'); chips.setAttribute('aria-label', 'Sort by');
+      qa(sortSel, 'option').forEach(o => {
+        if (!o.value && !o.textContent.trim()) return;
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'sort-chip'; b.setAttribute('role', 'radio'); b.dataset.value = o.value; b.textContent = o.textContent.trim();
+        b.addEventListener('click', () => {
+          sortSel.value = o.value;
+          sortSel.dispatchEvent(new Event('input', { bubbles: true }));
+          sortSel.dispatchEvent(new Event('change', { bubbles: true }));
+          syncSort();
+        });
+        chips.appendChild(b);
+      });
+      sortGroup.querySelector('.filter-group-content').appendChild(chips);
+      sortGroup.classList.add('has-sort-chips');
+      sortSel.addEventListener('change', () => syncSort());
+    }
+    function syncSort() {
+      if (!chips) return;
+      qa(chips, '.sort-chip').forEach(b => setAttr(b, 'aria-checked', String(b.dataset.value === sortSel.value)));
+    }
+    syncSort();
+
+    // Bottom sheet: swipe down on the header closes it; Tab stays inside while open
+    const panel = q(root, '.collection-filters-panel');
+    if (panel) {
+      panel.setAttribute('aria-modal', 'true');
+      // swipe down on the header closes the sheet (self-contained: needs nothing from the Sheet engine)
+      const head = q(panel, '.collection-filters-head');
+      let sy = 0, dy = 0, t0 = 0, drag = false, pid = null;
+      const canSwipe = () => mqPhone.matches && root.classList.contains('is-open');
+      panel.addEventListener('pointerdown', e => {
+        if (!canSwipe() || !head || !head.contains(e.target) || e.target.closest('a, button, [role="button"], input, select')) return;
+        if (e.pointerType === 'mouse' && e.button !== 0) return;
+        sy = e.clientY; dy = 0; t0 = e.timeStamp; drag = true; pid = e.pointerId;
+        try { panel.setPointerCapture(pid); } catch (x) {}
+      });
+      panel.addEventListener('pointermove', e => {
+        if (!drag || e.pointerId !== pid) return;
+        dy = Math.max(0, e.clientY - sy);
+        if (dy > 4) { panel.classList.add('is-dragging'); panel.style.transform = `translateY(${dy}px)`; }
+      });
+      const endDrag = e => {
+        if (!drag || e.pointerId !== pid) return;
+        drag = false;
+        try { panel.releasePointerCapture(pid); } catch (x) {}
+        const v = dy / Math.max(1, e.timeStamp - t0);
+        panel.classList.remove('is-dragging');
+        if (dy > Math.min(120, (panel.offsetHeight || 0) * 0.25) || (dy > 40 && v > 0.5)) {
+          panel.style.transform = 'translateY(100%)'; close();
+          setTimeout(() => { panel.style.transform = ''; }, 340);
+        } else if (dy) panel.style.transform = '';
+      };
+      panel.addEventListener('pointerup', endDrag); panel.addEventListener('pointercancel', endDrag);
+      panel.addEventListener('keydown', e => {
+        if (e.key !== 'Tab' || !root.classList.contains('is-open')) return;
+        const f = qa(panel, 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])').filter(el => el.getClientRects().length > 0);
+        if (!f.length) return;
+        const a = f[0], z = f[f.length - 1];
+        if (e.shiftKey && document.activeElement === a) { e.preventDefault(); z.focus(); }
+        else if (!e.shiftKey && document.activeElement === z) { e.preventDefault(); a.focus(); }
+      });
+    }
+
     // Observe Storesynk's changes only; ignore the ones this script makes itself.
     const OBS = { subtree: true, childList: true, attributes: true, attributeFilter: ['class'] };
     const LIST_OBS = { subtree: false, childList: true, attributes: true, attributeFilter: ['class', 'style'] };
@@ -192,7 +328,7 @@
     const watch = () => { mo.observe(root, OBS); if (list) { mo.observe(list, LIST_OBS); qa(list, ':scope > *').forEach(el => mo.observe(el, { attributes: true, attributeFilter: ['class', 'style'] })); } };
     function run() {
       mo.disconnect();
-      try { prepValues(); tidy(); refresh(); updateEmpty(); }
+      try { sectionize(); prepValues(); tidy(); refresh(); updateEmpty(); syncSort(); }
       finally { mo.takeRecords(); watch(); }
     }
     run();

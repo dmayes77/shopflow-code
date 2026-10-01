@@ -24,8 +24,8 @@ layout, behavior and accessibility on top of Storesynk's `sf-*` attributes.
 | `shopflow-cart-drawer.css` / `.js` | 1.1.0 | Page Shell › cart embed **Popup CSS** – Storesynk's cart as a bottom sheet on phones (swipe down to close) and a right drawer above; covers the bottom nav | ShopFlow |
 | `shopflow-mobile-nav.css` / `.js` | 1.0.1 / 1.0.2 | Navigation / OYG › embed **ShopFlow Mobile Nav Code** | ShopFlow |
 | `shopflow-pdp.css` / `.js` | 1.2.8 | Products Template › embed **ShopFlow PDP Code** | ShopFlow |
-| `shopflow-collection-filters.css` | 1.0.7 | Shop All › filters embed (`<link id="shopflow-collection-filters-css">`) | ShopFlow |
-| `shopflow-collection-filters.js` | 1.0.7 | Shop All › filters embed | ShopFlow |
+| `shopflow-collection-filters.css` | 1.2.0 | Shop All › filters embed (`<link id="shopflow-collection-filters-css">`) | ShopFlow |
+| `shopflow-collection-filters.js` | 1.2.0 | Shop All › filters embed | ShopFlow |
 | `shopflow-product-card-quick-add.css` | 1.1.0 | Product Card component (mobile "+" button) | ShopFlow |
 | `shopflow-navbar-scroll.js` | 2.0.1 | Site footer custom code (registered script `shopflownavbarscroll`) | ShopFlow |
 | `shopflow-product-card-images.js` | 1.1.0 | Site footer custom code (registered script `shopflowresponsiveimages`) | ShopFlow |
@@ -59,7 +59,8 @@ Not in the shared drawer, on purpose:
 - **Cart** – Storesynk's own popup (`[sf-cart-popup]`); Storesynk opens it after add-to-cart. Styled to match the
   Sheet (v1.1.0: tall bottom sheet ≤767px with drag handle + swipe-to-close, right drawer above, Esc closes, z-index 1002).
 - **Collection filters** – must stay inside the Storesynk collection (`[sf-collection]`) to keep filtering; it is
-  a sidebar on desktop and slides in on phones (`shopflow-collection-filters`).
+  a sidebar on desktop and a bottom sheet on phones/tablets (swipe down to close; Sort and Category/Size/Style as chips;
+  Style splits into sections from Shopify tag prefixes, see `docs/filter-tag-convention.md`).
 
 New drawer content (search, recently viewed, complete the look, store info…) = a new block + a trigger, no new code
 for the drawer itself.
