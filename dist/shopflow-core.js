@@ -424,7 +424,7 @@
   window.CoreConsent = { get: read, set: set, open: open };
 })();
 
-/* ShopFlow – Navigation experience v1.1.0
+/* ShopFlow – Navigation experience v1.1.1 (hidden Webflow condition elements ignored)
  * ShopFlow-specific mobile navigation on top of Core Bottom Nav:
  *   Home · Shop · New · Cart · More
  *
@@ -447,7 +447,7 @@
  *     data-business-hours-order
  *     data-business-hours-open
  *     data-business-hours-close
- *     data-business-hours-closed
+ *     data-business-hours-closed  (text "true", conditional visibility: Closed is set)
  */
 (function(){
   if(window.__shopflowNavExperience) return;
@@ -515,7 +515,9 @@
       var read = function(name){
         var attributeValue = (node.getAttribute(name) || '').trim();
         if(attributeValue) return attributeValue;
-        var child = node.querySelector('[' + name + ']');
+        // Webflow keeps conditionally hidden elements in the page (.w-condition-invisible): ignore them,
+        // so the Closed marker (shown only when the Closed switch is on) reads correctly.
+        var child = node.querySelector('[' + name + ']:not(.w-condition-invisible)');
         return child ? child.textContent.replace(/\s+/g, ' ').trim() : '';
       };
       var day = read('data-business-hours-day');

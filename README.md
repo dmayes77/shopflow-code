@@ -118,9 +118,9 @@ Feature embeds can stay pinned to a release tag (example for the product page):
 | Webflow embed | Loads |
 |---|---|
 | Page Shell › **ShopFlow Core Code** | `dist/shopflow-core.css`, `dist/shopflow-core.js`; a permanent inline loader requests stable `@main` URLs with a five-minute cache key, so the embed never changes while releases still propagate promptly |
-| Page Shell › cart embed **Popup CSS** | `dist/shopflow-cart-drawer.css`, `.js` |
-| Navigation / OYG › **ShopFlow Mobile Nav Code** | `dist/shopflow-mobile-nav.css`, `.js` |
-| Products Template › **ShopFlow PDP Code** | `dist/shopflow-pdp.css`, `.js` |
+| Page Shell › cart embed **Popup CSS** | `dist/shopflow-cart-drawer.css`, `.js`; loaded from `@main` |
+| Navigation / OYG › **ShopFlow Mobile Nav Code** | `dist/shopflow-mobile-nav.css`, `.js`; loaded from `@main` |
+| Products Template › **ShopFlow PDP Code** | `dist/shopflow-pdp.css`, `.js`; loaded from `@main` |
 | Shop All › filters embed | `dist/shopflow-collection-filters.css` (the `<link>` keeps `id="shopflow-collection-filters-css"`), `.js`; loaded from `@main` |
 
 Not on jsDelivr (yet): the Product Card component embeds (`shopflow-product-card-quick-add.css`) and the two site
@@ -140,6 +140,6 @@ git push code vX.Y.Z
 ```
 
 For version-pinned embeds, change `@vA.B.C` to `@vX.Y.Z` in Webflow and publish the site. A tag is permanent: never
-move or reuse one; release a new number instead. The Page Shell core embed and Shop All collection-filter embed point
-to `@main`, so pushing rebuilt files to the public repo updates the storefront without another Webflow edit. The core
+move or reuse one; release a new number instead. Every ShopFlow jsDelivr embed (Page Shell core, cart drawer, mobile nav, product page and Shop All
+collection filters) points to `@main`, so pushing rebuilt files to the public repo updates the storefront without another Webflow edit. The core
 loader rotates its query key every five minutes to avoid a browser holding an obsolete branch build.
