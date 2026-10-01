@@ -18,7 +18,7 @@ layout, behavior and accessibility on top of Storesynk's `sf-*` attributes.
 | `core-bottom-nav.css` / `.js` | 1.0.0 | Page Shell › **ShopFlow Core Code** – behavior for Navigation / Bottom Nav (tab actions, active tab, badges) | Core 2.0 candidate |
 | `core-consent.css` / `.js` | 1.0.0 | Page Shell › **ShopFlow Core Code** – cookie consent + Site Settings sheet (Google Consent Mode v2) | Core 2.0 candidate |
 | `core-consent-head.html` | 1.0.0 | **Site settings › Custom code › Head**, above the Google tag – Consent Mode defaults | Core 2.0 candidate |
-| `shopflow-brand-bar.css` | 1.0.1 | Page Shell › **ShopFlow Core Code** – ≤991px the OYG navbar shows the logo (left) + settings cog (right); search/cart/account/menu live in the bottom nav | ShopFlow |
+| `shopflow-brand-bar.css` / `shopflow-nav-experience.js` | 1.1.0 / 1.0.0 | Page Shell › **ShopFlow Core Code** – ≤991px the brand bar shows logo + account; bottom nav is Home · Shop · New · Cart · More; More combines CMS-managed store information with privacy settings | ShopFlow |
 | `shopflow-quick-add.css` / `.js` | 1.1.0 / 1.1.1 | Page Shell › embed **ShopFlow Core Code** (section 2) | ShopFlow |
 | `shopflow-size-labels.css` / `.js` | 1.0.0 | Page Shell › ShopFlow Core – every size button shows S / M / L in a rounded square | ShopFlow |
 | `shopflow-cart-page-bg.css` | 1.0.0 | Page Shell › embed **ShopFlow Core Code** (section 3) | ShopFlow |
@@ -33,7 +33,7 @@ layout, behavior and accessibility on top of Storesynk's `sf-*` attributes.
 | `shopflow-wishlist.css` / `.js` | 1.0.1 | **Parked, not installed.** Kept for when the wishlist comes back. | ShopFlow |
 
 **ShopFlow Core Code** is one embed in the Page Shell (loaded on every page). It loads `dist/shopflow-core.css` / `.js`,
-which `build.sh` bundles in this order: page stability → sheet → bottom nav → consent → brand bar → quick add → size
+which `build.sh` bundles in this order: page stability → sheet → bottom nav → consent → ShopFlow navigation → brand bar → quick add → size
 labels → cart page background. `core-consent-head.html` is separate: it goes in Site settings › Custom code › Head.
 
 ## The shared drawer (Sheet v1.3.0)
@@ -73,15 +73,16 @@ Phones and tablets (≤991px) get an app-style bottom nav; desktop is unchanged.
 
 - Page Shell has two new slots: **Mobile Nav** (holds `ShopFlow / Bottom Nav`) and **Overlay** (hidden sheet content).
 - Core components: `Navigation / Bottom Nav` (Tabs slot) and `Navigation / Bottom Nav Tab` (props Label, Link, Action; slots Icon, Badge).
-- ShopFlow component: `ShopFlow / Bottom Nav` = Home · Shop · Search · Cart · Account. The Cart badge is `ShopFlow / Cart Count Badge` (`sf-cart-count`).
+- ShopFlow component markup remains Home · Shop · Search · Cart · Account for reuse, then `shopflow-nav-experience.js` maps it to **Home · Shop · New · Cart · More** at runtime. New opens `/shop-all?view=new`; More opens the shared store/privacy sheet. The Cart badge is `ShopFlow / Cart Count Badge` (`sf-cart-count`).
 - Tab **Action**: empty = normal link · `sheet:NAME` opens a sheet · `click:SELECTOR` clicks an existing control. **Link** is the no-JavaScript fallback.
 - Sheets cover the bottom nav (sheet z-index 1002, bar 1000).
 - The outer `.bottom-nav` reserves the bar's height, so page content is never hidden behind it.
 
-## Site Settings & cookie consent (v1.0.0)
+## More sheet & cookie consent
 
-- `Core / Site Settings` (Page Shell › Overlay slot) holds two sheets: **site-settings** (Privacy & cookies: Essential always on, Analytics, Marketing) and **cookie-notice** (first visit: Accept all · Necessary only · Customize).
-- The brand-bar cog (`[data-settings-open]`, Navigation / OYG) opens Settings on phones/tablets. Desktop entry point: a footer "Cookie settings" link with `data-sheet-open="site-settings"` (to add).
+- The singleton Webflow CMS collection **Store Settings** is rendered once in Page Shell as a hidden `[data-store-settings]` element. Its custom attributes bind the global plain/link fields (identity, contact, split address, directions and future settings); a hidden `[data-store-hours]` child binds the Store Hours rich-text field. This makes the record available on every page without hardcoding client data in JavaScript.
+- `Core / Site Settings` (Page Shell › Overlay slot) holds two sheets: **site-settings** (presented as More: CMS-driven Contact, Call, Directions, Hours, plus Privacy & cookies) and **cookie-notice** (first visit: Accept all · Necessary only · Customize).
+- The mobile/tablet brand bar exposes the existing Shopify account control. The bottom-nav More tab opens `site-settings`. Desktop privacy entry point remains a footer "Cookie settings" link with `data-sheet-open="site-settings"` (to add).
 - The choice is stored in `localStorage` (`core-consent-v1`). `core-consent-head.html` sets Google Consent Mode v2 defaults (denied until accepted) and must sit above the Google tag; `core-consent.js` sends the update. Storesynk's GA4 e-commerce events go through that same tag, so they follow consent.
 - Other trackers (Meta, TikTok…): add them as `<script type="text/plain" data-consent="marketing">` and they run only after consent.
 - Future settings (e.g. Appearance / dark mode) = another `[data-settings-section]` in the Settings sheet.
@@ -106,7 +107,7 @@ Phones and tablets (≤991px) get an app-style bottom nav; desktop is unchanged.
 
 ## How the storefront loads it
 
-Each Webflow embed is two lines, pinned to one release tag (example for the product page):
+Feature embeds can stay pinned to a release tag (example for the product page):
 
 ```html
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/dmayes77/shopflow-code@v1.3.0/dist/shopflow-pdp.css">
@@ -115,7 +116,7 @@ Each Webflow embed is two lines, pinned to one release tag (example for the prod
 
 | Webflow embed | Loads |
 |---|---|
-| Page Shell › **ShopFlow Core Code** | `dist/shopflow-core.css`, `dist/shopflow-core.js` |
+| Page Shell › **ShopFlow Core Code** | `dist/shopflow-core.css`, `dist/shopflow-core.js`; loaded from stable `@main` URLs so the embed never changes |
 | Page Shell › cart embed **Popup CSS** | `dist/shopflow-cart-drawer.css`, `.js` |
 | Navigation / OYG › **ShopFlow Mobile Nav Code** | `dist/shopflow-mobile-nav.css`, `.js` |
 | Products Template › **ShopFlow PDP Code** | `dist/shopflow-pdp.css`, `.js` |
@@ -138,6 +139,6 @@ git push code vX.Y.Z
 ```
 
 For version-pinned embeds, change `@vA.B.C` to `@vX.Y.Z` in Webflow and publish the site. A tag is permanent: never
-move or reuse one; release a new number instead. The Shop All collection-filter embed is the exception: it points to
-`@main`, so pushing the rebuilt `dist/shopflow-collection-filters.*` files to the public repo updates the storefront
-without another Webflow edit. jsDelivr may continue serving its cached copy briefly after a push.
+move or reuse one; release a new number instead. The Page Shell core embed and Shop All collection-filter embed point
+to `@main`, so pushing rebuilt files to the public repo updates the storefront without another Webflow edit. jsDelivr
+may continue serving its cached copy briefly after a push.
