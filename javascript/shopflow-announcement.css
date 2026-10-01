@@ -1,0 +1,7 @@
+/* ShopFlow – Announcement bar + navbar stacking v1.0.0. Core 2.0 upstream candidate.
+   The announcement bar (Page Shell › CMS / Announcement Bar, [data-announcement]) sits in the page flow above the header.
+   The navbar is position:fixed, so it is pushed down by --sf-announcement-offset (set by shopflow-announcement.js):
+   at the top of the page it sits right under the bar; as you scroll both move up together, and once the bar has
+   scrolled away the navbar stays pinned at top:0. No bar (empty Announcement) = offset 0, nothing changes. */
+.navbar-compact{top:var(--sf-announcement-offset,0px)}
+[data-announcement]{position:relative;z-index:1001}

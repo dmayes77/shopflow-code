@@ -14,6 +14,7 @@ layout, behavior and accessibility on top of Storesynk's `sf-*` attributes.
 | File(s) | Version | Installed in Webflow | Layer |
 |---|---|---|---|
 | `shopflow-page-stability.css` | 1.0.0 | Page Shell › embed **ShopFlow Core Code** (section 0) | Core 2.0 candidate |
+| `shopflow-announcement.css` / `.js` | 1.0.0 | Page Shell › **ShopFlow Core Code** – announcement bar stacked above the navbar; both scroll up, then the navbar sticks at the top (`--sf-announcement-offset`) | Core 2.0 candidate |
 | `shopflow-sheet.css` / `.js` | 1.3.0 | Page Shell › embed **ShopFlow Core Code** (section 1) – the shared drawer | Core 2.0 candidate |
 | `core-bottom-nav.css` / `.js` | 1.0.0 | Page Shell › **ShopFlow Core Code** – behavior for Navigation / Bottom Nav (tab actions, active tab, badges) | Core 2.0 candidate |
 | `core-consent.css` / `.js` | 1.0.0 | Page Shell › **ShopFlow Core Code** – cookie consent + Site Settings sheet (Google Consent Mode v2) | Core 2.0 candidate |
@@ -34,7 +35,7 @@ layout, behavior and accessibility on top of Storesynk's `sf-*` attributes.
 | `shopflow-wishlist.css` / `.js` | 1.0.1 | **Parked, not installed.** Kept for when the wishlist comes back. | ShopFlow |
 
 **ShopFlow Core Code** is one embed in the Page Shell (loaded on every page). It loads `dist/shopflow-core.css` / `.js`,
-which `build.sh` bundles in this order: page stability → sheet → bottom nav → consent → ShopFlow navigation → brand bar → store fill → quick add → size
+which `build.sh` bundles in this order: page stability → announcement → sheet → bottom nav → consent → ShopFlow navigation → brand bar → store fill → quick add → size
 labels → cart page background. `core-consent-head.html` is separate: it goes in Site settings › Custom code › Head.
 
 ## The shared drawer (Sheet v1.3.0)

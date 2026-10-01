@@ -1,9 +1,17 @@
-/* ShopFlow – shopflow-core.css – built from: shopflow-page-stability.css shopflow-sheet.css core-bottom-nav.css core-consent.css shopflow-brand-bar.css shopflow-quick-add.css shopflow-size-labels.css shopflow-cart-page-bg.css */
+/* ShopFlow – shopflow-core.css – built from: shopflow-page-stability.css shopflow-announcement.css shopflow-sheet.css core-bottom-nav.css core-consent.css shopflow-brand-bar.css shopflow-quick-add.css shopflow-size-labels.css shopflow-cart-page-bg.css */
 
 /* ShopFlow – Page stability v1.0.0 – always reserve the scrollbar's space, so the page doesn't shift sideways when it grows
    past one screen (opening an accordion) or when a drawer locks scrolling. No effect with overlay scrollbars (phones, default macOS).
    Core 2.0 upstream candidate. Installed in Page Shell › embed "ShopFlow Core Code" (section 0). */
 html{scrollbar-gutter:stable}
+
+/* ShopFlow – Announcement bar + navbar stacking v1.0.0. Core 2.0 upstream candidate.
+   The announcement bar (Page Shell › CMS / Announcement Bar, [data-announcement]) sits in the page flow above the header.
+   The navbar is position:fixed, so it is pushed down by --sf-announcement-offset (set by shopflow-announcement.js):
+   at the top of the page it sits right under the bar; as you scroll both move up together, and once the bar has
+   scrolled away the navbar stays pinned at top:0. No bar (empty Announcement) = offset 0, nothing changes. */
+.navbar-compact{top:var(--sf-announcement-offset,0px)}
+[data-announcement]{position:relative;z-index:1001}
 
 /* ShopFlow – Sheet v1.3.0 – one shared drawer (bottom sheet / dialog / left or right drawer). Core 2.0 upstream candidate.
    Installed in Page Shell › ShopFlow Core (dist/shopflow-core.css). The drawer itself ([data-sheet-host]) is built by
