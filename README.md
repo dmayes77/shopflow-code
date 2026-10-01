@@ -22,7 +22,7 @@ layout, behavior and accessibility on top of Storesynk's `sf-*` attributes.
 | `shopflow-quick-add.css` / `.js` | 1.1.0 / 1.1.1 | Page Shell › embed **ShopFlow Core Code** (section 2) | ShopFlow |
 | `shopflow-size-labels.css` / `.js` | 1.0.0 | Page Shell › ShopFlow Core – every size button shows S / M / L in a rounded square | ShopFlow |
 | `shopflow-cart-page-bg.css` | 1.0.0 | Page Shell › embed **ShopFlow Core Code** (section 3) | ShopFlow |
-| `shopflow-cart-drawer.css` / `.js` | 1.1.0 | Page Shell › cart embed **Popup CSS** – Storesynk's cart as a bottom sheet on phones (swipe down to close) and a right drawer above; covers the bottom nav | ShopFlow |
+| `shopflow-cart-drawer.css` / `.js` | 1.2.0 | Page Shell › cart embed **Popup CSS** – Storesynk's cart as a bottom sheet on phones (swipe down to close) and a right drawer above; covers and disables the bottom nav while open | ShopFlow |
 | `shopflow-mobile-nav.css` / `.js` | 1.0.1 / 1.0.2 | Navigation / OYG › embed **ShopFlow Mobile Nav Code** | ShopFlow |
 | `shopflow-pdp.css` / `.js` | 1.2.8 | Products Template › embed **ShopFlow PDP Code** | ShopFlow |
 | `shopflow-collection-filters.css` | 1.2.0 | Shop All › filters embed (`<link id="shopflow-collection-filters-css">`) | ShopFlow |
@@ -58,7 +58,8 @@ a swipe down on the handle or head. While open, everything else on the page is `
 `window.CoreSheet`.
 Not in the shared drawer, on purpose:
 - **Cart** – Storesynk's own popup (`[sf-cart-popup]`); Storesynk opens it after add-to-cart. Styled to match the
-  Sheet (v1.1.0: tall bottom sheet ≤767px with drag handle + swipe-to-close, right drawer above, Esc closes, z-index 1002).
+  Sheet (v1.2.0: tall bottom sheet ≤767px with drag handle + swipe-to-close, fixed subtotal/actions, right drawer
+  above, Esc closes, z-index 1002). While open it covers the bottom nav and removes that nav from the focus order.
 - **Collection filters** – must stay inside the Storesynk collection (`[sf-collection]`) to keep filtering; it is
   a sidebar on desktop and a bottom sheet on phones/tablets (swipe down to close; Sort and Category/Size/Style as chips;
   Style splits into sections from Shopify tag prefixes, see `docs/filter-tag-convention.md`).
