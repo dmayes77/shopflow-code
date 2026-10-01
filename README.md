@@ -18,7 +18,8 @@ layout, behavior and accessibility on top of Storesynk's `sf-*` attributes.
 | `core-bottom-nav.css` / `.js` | 1.0.0 | Page Shell › **ShopFlow Core Code** – behavior for Navigation / Bottom Nav (tab actions, active tab, badges) | Core 2.0 candidate |
 | `core-consent.css` / `.js` | 1.0.0 | Page Shell › **ShopFlow Core Code** – cookie consent + Site Settings sheet (Google Consent Mode v2) | Core 2.0 candidate |
 | `core-consent-head.html` | 1.0.0 | **Site settings › Custom code › Head**, above the Google tag – Consent Mode defaults | Core 2.0 candidate |
-| `shopflow-brand-bar.css` / `shopflow-nav-experience.js` | 1.1.0 / 1.0.0 | Page Shell › **ShopFlow Core Code** – ≤991px the brand bar shows logo + account; bottom nav is Home · Shop · New · Cart · More; More combines CMS-managed store information with privacy settings | ShopFlow |
+| `shopflow-brand-bar.css` / `shopflow-nav-experience.js` | 1.1.0 / 1.1.1 | Page Shell › **ShopFlow Core Code** – ≤991px the brand bar shows logo + account; bottom nav is Home · Shop · New · Cart · More; More combines CMS-managed store information with privacy settings | ShopFlow |
+| `shopflow-store-fill.js` | 1.0.0 | Page Shell › **ShopFlow Core Code** – fills `[data-store="field"]` slots (logos, footer copy, contact, policies) from the global Store Settings layer | Core 2.0 candidate |
 | `shopflow-quick-add.css` / `.js` | 1.1.0 / 1.1.1 | Page Shell › embed **ShopFlow Core Code** (section 2) | ShopFlow |
 | `shopflow-size-labels.css` / `.js` | 1.0.0 | Page Shell › ShopFlow Core – every size button shows S / M / L in a rounded square | ShopFlow |
 | `shopflow-cart-page-bg.css` | 1.0.0 | Page Shell › embed **ShopFlow Core Code** (section 3) | ShopFlow |
@@ -33,7 +34,7 @@ layout, behavior and accessibility on top of Storesynk's `sf-*` attributes.
 | `shopflow-wishlist.css` / `.js` | 1.0.1 | **Parked, not installed.** Kept for when the wishlist comes back. | ShopFlow |
 
 **ShopFlow Core Code** is one embed in the Page Shell (loaded on every page). It loads `dist/shopflow-core.css` / `.js`,
-which `build.sh` bundles in this order: page stability → sheet → bottom nav → consent → ShopFlow navigation → brand bar → quick add → size
+which `build.sh` bundles in this order: page stability → sheet → bottom nav → consent → ShopFlow navigation → brand bar → store fill → quick add → size
 labels → cart page background. `core-consent-head.html` is separate: it goes in Site settings › Custom code › Head.
 
 ## The shared drawer (Sheet v1.3.0)
@@ -77,6 +78,34 @@ Phones and tablets (≤991px) get an app-style bottom nav; desktop is unchanged.
 - Tab **Action**: empty = normal link · `sheet:NAME` opens a sheet · `click:SELECTOR` clicks an existing control. **Link** is the no-JavaScript fallback.
 - Sheets cover the bottom nav (sheet z-index 1002, bar 1000).
 - The outer `.bottom-nav` reserves the bar's height, so page content is never hidden behind it.
+
+## Store Settings everywhere (store fill v1.0.0)
+
+The Store Settings CMS item is the one place a client edits their name, logos, contact details, announcement and policy copy.
+It reaches the page two ways:
+
+- **Native bindings** where Webflow can do it cleanly: the header logo (Navigation / OYG › `CMS / Logo (Store Settings)`,
+  Logo + Alt = Business Name, links Home) and the announcement bar (Page Shell › `CMS / Announcement Bar`, hidden when
+  Announcement is empty).
+- **Store fill** everywhere else. The hidden Page Shell layer (`[data-store-settings]`) renders the item once per page:
+  the original `data-store-*` spans (business name, email, phone, address parts, directions, hours) plus native elements
+  marked `data-store-field="slug"` (Logo, Footer Copyright, Short Description, Shipping Message, Returns Summary,
+  Facebook URL). `shopflow-store-fill.js` reads them and fills any element marked with a slot:
+
+| Attribute | Effect |
+|---|---|
+| `data-store="logo"` on an Image | src (srcset removed); alt = business name when empty or with `data-store-alt` |
+| `data-store="facebook-url"` (any `*-url`) on a Link | href |
+| `data-store="email"` / `"phone"` on a Link | text + `mailto:` / `tel:` |
+| `data-store="returns-summary"` (any other field) | text |
+| `data-store="address"` | computed: street, line 2, city state zip, country |
+| `data-store-href="field"` | also sets href from another field |
+| `data-store-empty="hide"` | hide when the field is empty (default keeps the static fallback) |
+
+Current slots: footer logo, copyright, Facebook link and contact block (short description, address, phone, email);
+phone menu logo and shipping note; PDP shipping and returns lines. Code can read values with `ShopFlowStore.get('field')`.
+A new field = add it to Store Settings, bind a `data-store-field` element in the hidden layer, add `data-store` slots.
+Shopify-owned data (products, prices, inventory) never goes through Store Settings.
 
 ## More sheet & cookie consent
 
