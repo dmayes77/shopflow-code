@@ -543,7 +543,7 @@
     if(!body) return;
 
     var info = businessInfo();
-    if(!info) return;
+    if(!info || ![info.name, info.email, info.phone, info.address, info.directions, info.hours].some(Boolean)) return;
 
     var section = document.createElement('section');
     section.setAttribute('data-more-section', '');
@@ -600,8 +600,13 @@
     var shopTab = tabByLabel('Shop');
     setTab(searchTab, {label:'New', ariaLabel:'New arrivals', href:NEW_URL, action:'', role:'new', icon:newIcon});
     setTab(accountTab, {label:'More', ariaLabel:'More', href:'#more', action:'sheet:site-settings', role:'more', icon:moreIcon});
-    addMoreContent();
-    activateNewView(searchTab, shopTab);
+    var hydrate = function(){
+      addMoreContent();
+      activateNewView(searchTab, shopTab);
+    };
+    hydrate();
+    window.setTimeout(hydrate, 250);
+    window.setTimeout(hydrate, 1000);
   }
 
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
