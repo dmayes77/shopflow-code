@@ -13,7 +13,7 @@ layout, behavior and accessibility on top of Storesynk's `sf-*` attributes.
 | File(s) | Version | Installed in Webflow | Layer |
 |---|---|---|---|
 | `shopflow-page-stability.css` | 1.0.0 | Page Shell › embed **ShopFlow Core Code** (section 0) | Core 2.0 candidate |
-| `shopflow-sheet.css` / `.js` | 1.2.0 | Page Shell › embed **ShopFlow Core Code** (section 1) – the shared drawer | Core 2.0 candidate |
+| `shopflow-sheet.css` / `.js` | 1.3.0 | Page Shell › embed **ShopFlow Core Code** (section 1) – the shared drawer | Core 2.0 candidate |
 | `core-bottom-nav.css` / `.js` | 1.0.0 | Page Shell › **ShopFlow Core Code** – behavior for Navigation / Bottom Nav (tab actions, active tab, badges) | Core 2.0 candidate |
 | `core-consent.css` / `.js` | 1.0.0 | Page Shell › **ShopFlow Core Code** – cookie consent + Site Settings sheet (Google Consent Mode v2) | Core 2.0 candidate |
 | `core-consent-head.html` | 1.0.0 | **Site settings › Custom code › Head**, above the Google tag – Consent Mode defaults | Core 2.0 candidate |
@@ -35,7 +35,7 @@ layout, behavior and accessibility on top of Storesynk's `sf-*` attributes.
 which `build.sh` bundles in this order: page stability → sheet → bottom nav → consent → brand bar → quick add → size
 labels → cart page background. `core-consent-head.html` is separate: it goes in Site settings › Custom code › Head.
 
-## The shared drawer (Sheet v1.2.0)
+## The shared drawer (Sheet v1.3.0)
 
 Every page has one drawer, built by `shopflow-sheet.js` (no Webflow markup needed). What it shows is a **content
 block**: a hidden element anywhere on the page, named with `data-sheet="name"` (or `data-sheet-content="name"`).
@@ -49,7 +49,12 @@ the drawer and moved back on close, so CMS bindings and Storesynk product contex
 | Size guide | Products Template › `[data-sheet="size-guide"]` | center | "Size guide" link |
 | Quick Add | each product card › `[data-sheet="quick-add"]` (one per product: it carries that product's sizes) | auto | card "+" / Add to cart |
 
-Modes: `auto` (bottom sheet on phones, centered dialog on desktop), `bottom`, `center`, `left`, `right`.
+Modes: `auto` (bottom sheet ≤991px, centered dialog above), `drawer` (bottom sheet ≤767px, right-side drawer above –
+for Cart and Filters), `bottom`, `center`, `left`, `right`. The host carries `data-sheet-as` = the presentation in use.
+Heights (bottom sheets, v1.3.0): `data-sheet-height` = `compact` (quick actions) · `medium` (menus, Shop) · `tall`
+(Cart, Filters, Search) · `full`; omit to fit the content (up to 88%). Bottom sheets have a drag handle and close with
+a swipe down on the handle or head. While open, everything else on the page is `inert`. Also available as
+`window.CoreSheet`.
 Not in the shared drawer, on purpose:
 - **Cart** – Storesynk's own popup (`[sf-cart-popup]`); Storesynk opens it after add-to-cart. Styled to match.
 - **Collection filters** – must stay inside the Storesynk collection (`[sf-collection]`) to keep filtering; it is
@@ -100,8 +105,8 @@ Phones and tablets (≤991px) get an app-style bottom nav; desktop is unchanged.
 Each Webflow embed is two lines, pinned to one release tag (example for the product page):
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/dmayes77/shopflow-code@v1.2.0/dist/shopflow-pdp.css">
-<script defer src="https://cdn.jsdelivr.net/gh/dmayes77/shopflow-code@v1.2.0/dist/shopflow-pdp.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/dmayes77/shopflow-code@v1.3.0/dist/shopflow-pdp.css">
+<script defer src="https://cdn.jsdelivr.net/gh/dmayes77/shopflow-code@v1.3.0/dist/shopflow-pdp.js"></script>
 ```
 
 | Webflow embed | Loads |

@@ -1,6 +1,6 @@
 /* ShopFlow – shopflow-core.js – built from: shopflow-sheet.js core-bottom-nav.js core-consent.js shopflow-quick-add.js shopflow-size-labels.js */
 
-/* ShopFlow – Sheet v1.2.0 – one shared drawer for the whole site. Core 2.0 upstream candidate (not commerce-specific).
+/* ShopFlow – Sheet v1.3.0 – one shared drawer for the whole site. Core 2.0 upstream candidate (not commerce-specific).
    Installed in Page Shell › ShopFlow Core (dist/shopflow-core.js).
 
    ONE DRAWER, MANY CONTENTS
@@ -18,18 +18,27 @@
    [data-quick-add], [data-mobile-nav] … keeps working), plus data-sheet-view="name".
 
    Open:  any element with data-sheet-open="name", or ShopFlowSheet.open(nameOrBlock, {returnFocus})
-          ShopFlowSheet.show({title, html|node, mode, width, view}) for content built in JS (no Webflow markup)
-   Close: [data-sheet-close], overlay tap, Esc, or ShopFlowSheet.close()
-   Modes: data-sheet-mode = auto (bottom sheet ≤991px, centered dialog above) | bottom | center | left | right
+          ShopFlowSheet.show({title, html|node, mode, height, width, view}) for content built in JS (no Webflow markup)
+   Close: [data-sheet-close], overlay tap, Esc, swipe down on the handle/head (bottom sheets), or ShopFlowSheet.close()
+   Modes (data-sheet-mode):
+     auto    bottom sheet ≤991px, centered dialog above (default)
+     drawer  bottom sheet ≤767px, right-side drawer above (v1.3.0 – Cart, Filters)
+     bottom | center | left | right   the same presentation at every width
+   Heights (data-sheet-height, bottom-sheet presentation only, v1.3.0):
+     compact (quick actions) | medium (menus, Shop) | tall (Cart, Filters, Search) | full (near full screen)
+     Omit for the default: fits the content, up to 88% of the screen.
    Width: data-sheet-width="34rem" (or --sheet-width in CSS)
+   The host carries data-sheet-as="bottom|center|left|right" – the presentation actually in use – for styling.
    Events on the block (and the host): "sheet:open", "sheet:close".
-   Handles scroll lock, focus trap, focus return, injected ✕ button, reduced motion (CSS). */
+   Handles scroll lock, inert background, focus trap, focus return, injected ✕ button, swipe-to-close, reduced motion.
+   Also available as window.CoreSheet (the name it will have in Core 2.0). */
 (function(){
   if(window.ShopFlowSheet) return;
-  var ANIM = 260, host, panel, defHead, defTitle, defBody, current = null, closeTimer = 0;
+  var ANIM = 260, host, panel, grab, defHead, defTitle, defBody, current = null, closeTimer = 0, inerted = [];
   var FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
   var X_SVG = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
-  var SKIP = /^data-sheet(-content|-mode|-title|-width|-open)?$/;
+  var SKIP = /^data-sheet(-content|-mode|-title|-width|-height|-open)?$/;
+  var MQ_APP = window.matchMedia('(max-width: 991px)'), MQ_PHONE = window.matchMedia('(max-width: 767px)');
 
   function esc(n){ return window.CSS && CSS.escape ? CSS.escape(n) : n; }
   function byName(n){ return document.querySelector('[data-sheet-content="' + esc(n) + '"], [data-sheet="' + esc(n) + '"]:not([data-sheet-host])'); }
@@ -44,12 +53,37 @@
     host.setAttribute('data-sheet', 'drawer'); host.setAttribute('data-sheet-host', '');
     host.innerHTML = '<div data-sheet-overlay data-sheet-close></div>' +
       '<div data-sheet-panel role="dialog" aria-modal="true" tabindex="-1">' +
-        '<div data-sheet-head data-sheet-default><div data-sheet-grabber></div><div data-sheet-title id="sheet-host-title"></div><div data-sheet-close>' + xButton() + '</div></div>' +
+        '<div data-sheet-grabber aria-hidden="true"></div>' +
+        '<div data-sheet-head data-sheet-default><div data-sheet-title id="sheet-host-title"></div><div data-sheet-close>' + xButton() + '</div></div>' +
         '<div data-sheet-body data-sheet-default></div>' +
       '</div>';
     panel = host.querySelector('[data-sheet-panel]');
-    defHead = panel.children[0]; defTitle = defHead.querySelector('[data-sheet-title]'); defBody = panel.children[1];
+    grab = panel.children[0]; defHead = panel.children[1]; defTitle = defHead.querySelector('[data-sheet-title]'); defBody = panel.children[2];
     document.body.appendChild(host);
+    panel.addEventListener('pointerdown', dragStart);
+  }
+
+  /* which presentation the current mode resolves to at this width */
+  function present(){
+    if(!host) return 'center';
+    var m = host.getAttribute('data-sheet-mode') || 'auto', as;
+    if(m === 'auto') as = MQ_APP.matches ? 'bottom' : 'center';
+    else if(m === 'drawer') as = MQ_PHONE.matches ? 'bottom' : 'right';
+    else as = (m === 'bottom' || m === 'center' || m === 'left' || m === 'right') ? m : 'center';
+    host.setAttribute('data-sheet-as', as);
+    return as;
+  }
+  function onResize(){ if(host && host.classList.contains('is-open')) present(); }
+  [MQ_APP, MQ_PHONE].forEach(function(q){ if(q.addEventListener) q.addEventListener('change', onResize); else if(q.addListener) q.addListener(onResize); });
+
+  /* everything outside the drawer becomes inert while it is open (screen readers and Tab stay inside) */
+  function setInert(on){
+    if(on){
+      Array.prototype.forEach.call(document.body.children, function(el){
+        if(el === host || el.hasAttribute('inert') || /^(SCRIPT|STYLE|LINK|TEMPLATE)$/.test(el.tagName)) return;
+        el.setAttribute('inert', ''); inerted.push(el);
+      });
+    } else { inerted.forEach(function(el){ el.removeAttribute('inert'); }); inerted = []; }
   }
 
   /* move a node into the host and remember where it came from */
@@ -70,8 +104,11 @@
     var name = block ? nameOf(block) : (opts.view || 'dynamic');
     host.setAttribute('data-sheet-view', name);
     host.setAttribute('data-sheet-mode', (block && block.getAttribute('data-sheet-mode')) || opts.mode || 'auto');
+    var h = (block && block.getAttribute('data-sheet-height')) || opts.height;
+    if(h) host.setAttribute('data-sheet-height', h); else host.removeAttribute('data-sheet-height');
     var w = (block && block.getAttribute('data-sheet-width')) || opts.width;
     if(w) host.style.setProperty('--sheet-width', w); else host.style.removeProperty('--sheet-width');
+    present();
     if(block){                                       // mirror the block's data-* attributes (CSS/JS hooks)
       Array.prototype.forEach.call(block.attributes, function(a){
         if(a.name.indexOf('data-') === 0 && !SKIP.test(a.name) && !host.hasAttribute(a.name)){ host.setAttribute(a.name, a.value); current.attrs.push(a.name); }
@@ -104,6 +141,7 @@
     current.moved.reverse().forEach(function(p){ var n = p[0], m = p[1]; if(m.parentNode){ m.parentNode.insertBefore(n, m); m.parentNode.removeChild(m); } });
     current.attrs.forEach(function(a){ host.removeAttribute(a); });
     host.className = '';                               // drop state classes a feature added (e.g. is-invalid)
+    host.removeAttribute('data-sheet-height');
     defHead.hidden = false; defBody.hidden = false; defBody.innerHTML = '';
     current = null;
   }
@@ -117,9 +155,11 @@
     if(current && current.block === block && host.classList.contains('is-open')) return host;
     if(current){ fire(current.block, 'sheet:close'); unmount(); }
     clearTimeout(closeTimer);
+    resetDrag();
     mount(block, opts);
     host.classList.add('is-open');
     document.documentElement.classList.add('sheet-lock');
+    setInert(true);
     requestAnimationFrame(function(){ requestAnimationFrame(function(){ host.classList.add('is-visible'); }); });
     setTimeout(function(){
       var f = panel.querySelector('[data-sheet-autofocus]');
@@ -135,12 +175,49 @@
     if(!host || !current || !host.classList.contains('is-open')) return;
     opts = opts || {};
     var block = current.block, r = current.returnFocus;
+    resetDrag();                                       // a swiped panel animates on from where the finger left it
     host.classList.remove('is-visible');
     document.documentElement.classList.remove('sheet-lock');
+    setInert(false);
     fire(block, 'sheet:close'); fire(host, 'sheet:close');
     var done = function(){ host.classList.remove('is-open'); unmount(); };
     if(opts.instant) done(); else closeTimer = setTimeout(done, ANIM);
     if(!opts.noFocus && r && r.focus && document.contains(r)) r.focus({preventScroll:true});
+  }
+
+  /* swipe down to close – bottom-sheet presentation, started on the handle or the head (not on its buttons/links) */
+  var drag = null;
+  function dragStart(e){
+    if(!host.classList.contains('is-visible') || host.getAttribute('data-sheet-as') !== 'bottom') return;
+    if(e.pointerType === 'mouse' && e.button !== 0) return;
+    var zone = e.target.closest('[data-sheet-grabber], [data-sheet-head]');
+    if(!zone || !panel.contains(zone) || e.target.closest('button, a, input, select, textarea, label')) return;
+    drag = { id: e.pointerId, y0: e.clientY, t0: e.timeStamp, dy: 0, h: panel.offsetHeight };
+    panel.style.transition = 'none';
+    try{ panel.setPointerCapture(e.pointerId); }catch(err){}
+    panel.addEventListener('pointermove', dragMove);
+    panel.addEventListener('pointerup', dragEnd);
+    panel.addEventListener('pointercancel', dragEnd);
+  }
+  function dragMove(e){
+    if(!drag || e.pointerId !== drag.id) return;
+    drag.dy = Math.max(0, e.clientY - drag.y0);        // only downward
+    panel.style.transform = 'translateY(' + drag.dy + 'px)';
+  }
+  function dragEnd(e){
+    if(!drag || e.pointerId !== drag.id) return;
+    var d = drag, v = d.dy / Math.max(1, e.timeStamp - d.t0);   // px per ms
+    if(d.dy > Math.min(140, d.h * 0.3) || (v > 0.6 && d.dy > 24)) close();
+    else resetDrag();
+  }
+  function resetDrag(){
+    if(panel){
+      panel.style.transition = ''; panel.style.transform = '';
+      panel.removeEventListener('pointermove', dragMove);
+      panel.removeEventListener('pointerup', dragEnd);
+      panel.removeEventListener('pointercancel', dragEnd);
+    }
+    drag = null;
   }
 
   document.addEventListener('click', function(e){
@@ -164,11 +241,14 @@
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', build); else build();
 
   window.ShopFlowSheet = {
+    version: '1.3.0',
     open: open, show: show, close: close,
     top: function(){ return host && host.classList.contains('is-open') ? host : null; },
     current: function(){ return current ? current.block : null; },
-    host: function(){ build(); return host; }
+    host: function(){ build(); return host; },
+    presentation: function(){ return host ? host.getAttribute('data-sheet-as') : null; }
   };
+  if(!window.CoreSheet) window.CoreSheet = window.ShopFlowSheet;
 })();
 
 /* Core – Bottom Nav v1.0.0 – behavior for Navigation / Bottom Nav + Navigation / Bottom Nav Tab.
