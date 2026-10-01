@@ -424,7 +424,7 @@
   window.CoreConsent = { get: read, set: set, open: open };
 })();
 
-/* ShopFlow – Navigation experience v1.0.0
+/* ShopFlow – Navigation experience v1.1.0
  * ShopFlow-specific mobile navigation on top of Core Bottom Nav:
  *   Home · Shop · New · Cart · More
  *
@@ -440,7 +440,14 @@
  *     data-store-phone / data-store-customer-phone
  *     data-store-street / data-store-address-2 / data-store-city / data-store-state / data-store-zip / data-store-country
  *     data-store-directions-url
- *     [data-store-hours] (child bound to the Rich Text field)
+ *
+ * The Business Hours Collection List is also rendered once in the Page Shell:
+ *   [data-business-hours-entry]
+ *     data-business-hours-day
+ *     data-business-hours-order
+ *     data-business-hours-open
+ *     data-business-hours-close
+ *     data-business-hours-closed
  */
 (function(){
   if(window.__shopflowNavExperience) return;
@@ -492,15 +499,50 @@
     };
     var cityLine = [value('data-store-city'), value('data-store-state'), value('data-store-zip')].filter(Boolean).join(' ');
     var address = [value('data-store-street'), value('data-store-address-2'), cityLine, value('data-store-country')].filter(Boolean).join(', ');
-    var hours = source.querySelector('[data-store-hours]');
     return {
       name: value('data-store-business-name'),
       email: value('data-store-customer-email') || value('data-store-email'),
       phone: value('data-store-customer-phone') || value('data-store-phone'),
       address: address,
       directions: value('data-store-directions-url'),
-      hours: hours ? hours.textContent.replace(/\s+/g, ' ').trim() : ''
+      hours: businessHours()
     };
+  }
+
+  function businessHours(){
+    var dayRank = {monday:1,tuesday:2,wednesday:3,thursday:4,friday:5,saturday:6,sunday:7};
+    var entries = Array.prototype.map.call(document.querySelectorAll('[data-business-hours-entry]'), function(node){
+      var read = function(name){
+        var attributeValue = (node.getAttribute(name) || '').trim();
+        if(attributeValue) return attributeValue;
+        var child = node.querySelector('[' + name + ']');
+        return child ? child.textContent.replace(/\s+/g, ' ').trim() : '';
+      };
+      var day = read('data-business-hours-day');
+      var closedValue = read('data-business-hours-closed').toLowerCase();
+      return {
+        day: day,
+        order: Number(read('data-business-hours-order')) || dayRank[day.toLowerCase()] || 99,
+        open: read('data-business-hours-open'),
+        close: read('data-business-hours-close'),
+        closed: /^(true|1|yes|on)$/.test(closedValue)
+      };
+    }).filter(function(entry){ return entry.day; });
+    return entries.sort(function(a, b){ return a.order - b.order; });
+  }
+
+  function groupedHours(hours){
+    return (hours || []).reduce(function(groups, entry){
+      var schedule = entry.closed ? 'Closed' : [entry.open, entry.close].filter(Boolean).join('–');
+      if(!schedule) return groups;
+      var previous = groups[groups.length - 1];
+      if(previous && previous.schedule === schedule){
+        previous.end = entry.day;
+      } else {
+        groups.push({start:entry.day, end:entry.day, schedule:schedule});
+      }
+      return groups;
+    }, []);
   }
 
   function phoneHref(phone){
@@ -534,6 +576,32 @@
     parent.appendChild(row);
   }
 
+  function addHoursRow(parent, hours){
+    var groups = groupedHours(hours);
+    if(!groups.length) return;
+    var row = document.createElement('div');
+    row.setAttribute('data-more-hours', '');
+    var copy = document.createElement('span');
+    copy.setAttribute('data-more-link-copy', '');
+    var strong = document.createElement('strong');
+    strong.textContent = 'Store hours';
+    var list = document.createElement('span');
+    list.setAttribute('data-more-hours-list', '');
+    groups.forEach(function(group){
+      var line = document.createElement('span');
+      line.setAttribute('data-more-hours-line', '');
+      var days = document.createElement('span');
+      days.textContent = group.start === group.end ? group.start : group.start + '–' + group.end;
+      var schedule = document.createElement('span');
+      schedule.textContent = group.schedule;
+      line.append(days, schedule);
+      list.appendChild(line);
+    });
+    copy.append(strong, list);
+    row.appendChild(copy);
+    parent.appendChild(row);
+  }
+
   function addMoreContent(){
     var sheet = document.querySelector('[data-sheet="site-settings"]');
     if(!sheet || sheet.querySelector('[data-more-section]')) return;
@@ -543,7 +611,7 @@
     if(!body) return;
 
     var info = businessInfo();
-    if(!info || ![info.name, info.email, info.phone, info.address, info.directions, info.hours].some(Boolean)) return;
+    if(!info || ![info.name, info.email, info.phone, info.address, info.directions, info.hours.length].some(Boolean)) return;
 
     var section = document.createElement('section');
     section.setAttribute('data-more-section', '');
@@ -557,7 +625,7 @@
     addInfoRow(links, 'Contact us', info.email, info.email ? 'mailto:' + info.email : '', false);
     addInfoRow(links, 'Call the store', info.phone, phoneHref(info.phone), false);
     addInfoRow(links, 'Directions', info.address, info.directions, true);
-    addInfoRow(links, 'Store hours', info.hours, '', false);
+    addHoursRow(links, info.hours);
     section.append(heading, links);
     body.insertBefore(section, body.firstChild);
   }
