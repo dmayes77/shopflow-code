@@ -1,4 +1,4 @@
-/* ShopFlow – Cart Drawer behavior v1.2.0
+/* ShopFlow – Cart Drawer behavior v1.2.1
  * Works on top of Storesynk's cart ([sf-cart]); Storesynk remains responsible
  * for product, quantity, price, checkout and persistence.
  *
@@ -30,7 +30,7 @@
   const clearControl = cart.querySelector('[data-cart-clear]');
   const note = cart.querySelector('[data-cart-note]');
   const continueControl = cart.querySelector('[data-cart-continue]');
-  const bottomNav = document.querySelector('[data-bottom-nav]');
+  const bottomNav = document.querySelector('[data-bottom-nav],.bottom-nav_bar');
 
   setText(clearControl, 'Clear Cart');
   setText(note, 'Shipping and tax calculated at checkout.');

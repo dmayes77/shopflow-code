@@ -22,7 +22,7 @@ layout, behavior and accessibility on top of Storesynk's `sf-*` attributes.
 | `shopflow-quick-add.css` / `.js` | 1.1.0 / 1.1.1 | Page Shell › embed **ShopFlow Core Code** (section 2) | ShopFlow |
 | `shopflow-size-labels.css` / `.js` | 1.0.0 | Page Shell › ShopFlow Core – every size button shows S / M / L in a rounded square | ShopFlow |
 | `shopflow-cart-page-bg.css` | 1.0.0 | Page Shell › embed **ShopFlow Core Code** (section 3) | ShopFlow |
-| `shopflow-cart-drawer.css` / `.js` | 1.2.0 | Page Shell › cart embed **Popup CSS** – Storesynk's cart as a bottom sheet on phones (swipe down to close) and a right drawer above; covers and disables the bottom nav while open | ShopFlow |
+| `shopflow-cart-drawer.css` / `.js` | 1.2.1 | Page Shell › cart embed **Popup CSS** – Storesynk's cart as a bottom sheet on phones (swipe down to close) and a right drawer above; covers and disables the bottom nav while open | ShopFlow |
 | `shopflow-mobile-nav.css` / `.js` | 1.0.1 / 1.0.2 | Navigation / OYG › embed **ShopFlow Mobile Nav Code** | ShopFlow |
 | `shopflow-pdp.css` / `.js` | 1.2.8 | Products Template › embed **ShopFlow PDP Code** | ShopFlow |
 | `shopflow-collection-filters.css` | 1.2.0 | Shop All › filters embed (`<link id="shopflow-collection-filters-css">`) | ShopFlow |
