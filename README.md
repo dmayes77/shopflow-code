@@ -3,7 +3,8 @@
 Source for every piece of custom code on the ShopFlow storefront (OYG Gameday proof of concept, Webflow site
 `shopflow-mayesdigital`). These files are the source of truth. The public repo **dmayes77/shopflow-code** is this
 folder, published from the private `shopflow` project repo; the storefront loads the files in `dist/` from it through
-jsDelivr, pinned to a version tag.
+jsDelivr. Most embeds remain pinned to a version tag. The Shop All collection-filter embed follows the public `main`
+branch so filter changes can ship without editing or republishing the Webflow embed.
 
 Shopify stays the commerce engine. Storesynk does the product, variant, cart and filter logic; this code only adds
 layout, behavior and accessibility on top of Storesynk's `sf-*` attributes.
@@ -117,7 +118,7 @@ Each Webflow embed is two lines, pinned to one release tag (example for the prod
 | Page Shell › cart embed **Popup CSS** | `dist/shopflow-cart-drawer.css`, `.js` |
 | Navigation / OYG › **ShopFlow Mobile Nav Code** | `dist/shopflow-mobile-nav.css`, `.js` |
 | Products Template › **ShopFlow PDP Code** | `dist/shopflow-pdp.css`, `.js` |
-| Shop All › filters embed | `dist/shopflow-collection-filters.css` (the `<link>` keeps `id="shopflow-collection-filters-css"`), `.js` |
+| Shop All › filters embed | `dist/shopflow-collection-filters.css` (the `<link>` keeps `id="shopflow-collection-filters-css"`), `.js`; loaded from `@main` |
 
 Not on jsDelivr (yet): the Product Card component embeds (`shopflow-product-card-quick-add.css`) and the two site
 footer scripts (`shopflow-navbar-scroll.js`, `shopflow-product-card-images.js`), which are registered in Webflow.
@@ -135,6 +136,7 @@ git push code shopflow-code:main                   # 4. publish (remote "code" =
 git push code vX.Y.Z
 ```
 
-Then change `@vA.B.C` to `@vX.Y.Z` in the Webflow embeds and publish the site. A tag is permanent: never move
-or reuse one; release a new number instead. The old version keeps working until the embeds are switched, so
-rolling back is just switching the tag back.
+For version-pinned embeds, change `@vA.B.C` to `@vX.Y.Z` in Webflow and publish the site. A tag is permanent: never
+move or reuse one; release a new number instead. The Shop All collection-filter embed is the exception: it points to
+`@main`, so pushing the rebuilt `dist/shopflow-collection-filters.*` files to the public repo updates the storefront
+without another Webflow edit. jsDelivr may continue serving its cached copy briefly after a push.
