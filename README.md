@@ -14,6 +14,10 @@ layout, behavior and accessibility on top of Storesynk's `sf-*` attributes.
 |---|---|---|---|
 | `shopflow-page-stability.css` | 1.0.0 | Page Shell › embed **ShopFlow Core Code** (section 0) | Core 2.0 candidate |
 | `shopflow-sheet.css` / `.js` | 1.2.0 | Page Shell › embed **ShopFlow Core Code** (section 1) – the shared drawer | Core 2.0 candidate |
+| `core-bottom-nav.css` / `.js` | 1.0.0 | Page Shell › **ShopFlow Core Code** – behavior for Navigation / Bottom Nav (tab actions, active tab, badges) | Core 2.0 candidate |
+| `core-consent.css` / `.js` | 1.0.0 | Page Shell › **ShopFlow Core Code** – cookie consent + Site Settings sheet (Google Consent Mode v2) | Core 2.0 candidate |
+| `core-consent-head.html` | 1.0.0 | **Site settings › Custom code › Head**, above the Google tag – Consent Mode defaults | Core 2.0 candidate |
+| `shopflow-brand-bar.css` | 1.0.1 | Page Shell › **ShopFlow Core Code** – ≤991px the OYG navbar shows the logo (left) + settings cog (right); search/cart/account/menu live in the bottom nav | ShopFlow |
 | `shopflow-quick-add.css` / `.js` | 1.1.0 / 1.1.1 | Page Shell › embed **ShopFlow Core Code** (section 2) | ShopFlow |
 | `shopflow-size-labels.css` / `.js` | 1.0.0 | Page Shell › ShopFlow Core – every size button shows S / M / L in a rounded square | ShopFlow |
 | `shopflow-cart-page-bg.css` | 1.0.0 | Page Shell › embed **ShopFlow Core Code** (section 3) | ShopFlow |
@@ -27,8 +31,9 @@ layout, behavior and accessibility on top of Storesynk's `sf-*` attributes.
 | `shopflow-product-card-images.js` | 1.1.0 | Site footer custom code (registered script `shopflowresponsiveimages`) | ShopFlow |
 | `shopflow-wishlist.css` / `.js` | 1.0.1 | **Parked, not installed.** Kept for when the wishlist comes back. | ShopFlow |
 
-**ShopFlow Core Code** is one embed in the Page Shell (loaded on every page) made of four files, in this order:
-page stability → sheet → quick add → cart page background. The CSS parts go in one `<style>`, the JS parts in one `<script>`.
+**ShopFlow Core Code** is one embed in the Page Shell (loaded on every page). It loads `dist/shopflow-core.css` / `.js`,
+which `build.sh` bundles in this order: page stability → sheet → bottom nav → consent → brand bar → quick add → size
+labels → cart page background. `core-consent-head.html` is separate: it goes in Site settings › Custom code › Head.
 
 ## The shared drawer (Sheet v1.2.0)
 
@@ -53,6 +58,25 @@ Not in the shared drawer, on purpose:
 New drawer content (search, recently viewed, complete the look, store info…) = a new block + a trigger, no new code
 for the drawer itself.
 
+## Mobile bottom nav (v1.0.0)
+
+Phones and tablets (≤991px) get an app-style bottom nav; desktop is unchanged.
+
+- Page Shell has two new slots: **Mobile Nav** (holds `ShopFlow / Bottom Nav`) and **Overlay** (hidden sheet content).
+- Core components: `Navigation / Bottom Nav` (Tabs slot) and `Navigation / Bottom Nav Tab` (props Label, Link, Action; slots Icon, Badge).
+- ShopFlow component: `ShopFlow / Bottom Nav` = Home · Shop · Search · Cart · Account. The Cart badge is `ShopFlow / Cart Count Badge` (`sf-cart-count`).
+- Tab **Action**: empty = normal link · `sheet:NAME` opens a sheet · `click:SELECTOR` clicks an existing control. **Link** is the no-JavaScript fallback.
+- Sheets cover the bottom nav (sheet z-index 1002, bar 1000).
+- The outer `.bottom-nav` reserves the bar's height, so page content is never hidden behind it.
+
+## Site Settings & cookie consent (v1.0.0)
+
+- `Core / Site Settings` (Page Shell › Overlay slot) holds two sheets: **site-settings** (Privacy & cookies: Essential always on, Analytics, Marketing) and **cookie-notice** (first visit: Accept all · Necessary only · Customize).
+- The brand-bar cog (`[data-settings-open]`, Navigation / OYG) opens Settings on phones/tablets. Desktop entry point: a footer "Cookie settings" link with `data-sheet-open="site-settings"` (to add).
+- The choice is stored in `localStorage` (`core-consent-v1`). `core-consent-head.html` sets Google Consent Mode v2 defaults (denied until accepted) and must sit above the Google tag; `core-consent.js` sends the update. Storesynk's GA4 e-commerce events go through that same tag, so they follow consent.
+- Other trackers (Meta, TikTok…): add them as `<script type="text/plain" data-consent="marketing">` and they run only after consent.
+- Future settings (e.g. Appearance / dark mode) = another `[data-settings-section]` in the Settings sheet.
+
 ## Design decisions reflected in the code
 
 - Shapes: no pill shapes on the storefront. Badges, buttons, size options and quantity boxes use Core 2.0
@@ -67,7 +91,7 @@ for the drawer itself.
 
 - `javascript/` – the sources you edit (one feature per file, version in each file header).
 - `dist/` – what Webflow loads. Built by `sh build.sh`; never edit by hand.
-  - `shopflow-core.css` / `.js` = page stability + sheet + quick add + size labels + cart page background (every page).
+  - `shopflow-core.css` / `.js` = page stability + sheet + bottom nav + consent + brand bar + quick add + size labels + cart page background (every page).
   - `shopflow-pdp`, `shopflow-cart-drawer`, `shopflow-mobile-nav`, `shopflow-collection-filters` (`.css` / `.js`).
 - `build.sh` – rebuilds `dist/`.
 
@@ -76,8 +100,8 @@ for the drawer itself.
 Each Webflow embed is two lines, pinned to one release tag (example for the product page):
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/dmayes77/shopflow-code@v1.0.0/dist/shopflow-pdp.css">
-<script defer src="https://cdn.jsdelivr.net/gh/dmayes77/shopflow-code@v1.0.0/dist/shopflow-pdp.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/dmayes77/shopflow-code@v1.2.0/dist/shopflow-pdp.css">
+<script defer src="https://cdn.jsdelivr.net/gh/dmayes77/shopflow-code@v1.2.0/dist/shopflow-pdp.js"></script>
 ```
 
 | Webflow embed | Loads |

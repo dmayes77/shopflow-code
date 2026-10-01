@@ -1,4 +1,4 @@
-/* ShopFlow – shopflow-core.js – built from: shopflow-sheet.js shopflow-quick-add.js shopflow-size-labels.js */
+/* ShopFlow – shopflow-core.js – built from: shopflow-sheet.js core-bottom-nav.js core-consent.js shopflow-quick-add.js shopflow-size-labels.js */
 
 /* ShopFlow – Sheet v1.2.0 – one shared drawer for the whole site. Core 2.0 upstream candidate (not commerce-specific).
    Installed in Page Shell › ShopFlow Core (dist/shopflow-core.js).
@@ -169,6 +169,179 @@
     current: function(){ return current ? current.block : null; },
     host: function(){ build(); return host; }
   };
+})();
+
+/* Core – Bottom Nav v1.0.0 – behavior for Navigation / Bottom Nav + Navigation / Bottom Nav Tab.
+   Core 2.0 (not commerce-specific). Works with the Sheet engine (window.ShopFlowSheet today, window.CoreSheet later).
+
+   Markup contract (built by the Webflow components):
+     [data-bottom-nav]                       outer spacer (reserves height so content is never covered)
+       nav.bottom-nav_bar
+         [data-bottom-nav-tab][data-tab-action="…"]   one per tab (Action prop)
+           a[data-bottom-nav-link]                     full-tab hit area (Link prop = no-JS fallback)
+           .bottom-nav_badge                           optional, in the Badge slot
+
+   Tab actions (Action prop):
+     ""                    normal link (active when the current page matches)
+     "sheet:NAME"          opens the sheet [data-sheet="NAME"]
+     "click:SELECTOR"      clicks an existing control, e.g. click:[sf-cart-open]
+   Badges whose text is empty or 0 get .is-empty (hidden); the tab's accessible name includes the count. */
+(function(){
+  if(window.__coreBottomNav) return; window.__coreBottomNav = true;
+  var TAB = '[data-bottom-nav-tab]', LINK = '[data-bottom-nav-link]';
+  function sheetApi(){ return window.CoreSheet || window.ShopFlowSheet || null; }
+  function norm(p){ p = (p || '/').replace(/\/+$/, ''); return p || '/'; }
+
+  document.addEventListener('click', function(e){
+    var link = e.target.closest && e.target.closest(LINK);
+    if(!link) return;
+    var tab = link.closest(TAB), action = tab && (tab.getAttribute('data-tab-action') || '').trim();
+    if(!action) return;                                   // plain link: let it navigate
+    var i = action.indexOf(':'), kind = action.slice(0, i), arg = action.slice(i + 1).trim();
+    if(kind === 'sheet' && sheetApi()){
+      e.preventDefault(); sheetApi().open(arg, {returnFocus: link});
+    } else if(kind === 'click'){
+      var target = null; try{ target = document.querySelector(arg); }catch(err){}
+      if(target){ e.preventDefault(); target.click(); }     // missing target: fall back to the link
+    }
+  });
+
+  function markActive(){
+    var here = norm(location.pathname);
+    document.querySelectorAll(TAB).forEach(function(tab){
+      var link = tab.querySelector(LINK), action = (tab.getAttribute('data-tab-action') || '').trim(), on = false;
+      if(link && !action){
+        var a = document.createElement('a'); a.href = link.getAttribute('href') || '/';
+        if(a.origin === location.origin){ var p = norm(a.pathname); on = p === '/' ? here === '/' : (here === p || here.indexOf(p + '/') === 0); }
+      }
+      tab.classList.toggle('is-active', on);
+      if(link){ if(on) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current'); }
+      if(link && action.indexOf('sheet:') === 0) link.setAttribute('aria-haspopup', 'dialog');
+    });
+  }
+
+  function syncBadges(){
+    document.querySelectorAll(TAB).forEach(function(tab){
+      var b = tab.querySelector('.bottom-nav_badge'), link = tab.querySelector(LINK);
+      if(!b || !link) return;
+      var n = (b.textContent || '').trim(), empty = n === '' || n === '0';
+      if(b.classList.contains('is-empty') !== empty) b.classList.toggle('is-empty', empty);
+      var base = link.getAttribute('data-label') || link.getAttribute('aria-label') || '';
+      if(!link.hasAttribute('data-label')) link.setAttribute('data-label', base);
+      var name = empty ? base : base + ', ' + n + (n === '1' ? ' item' : ' items');
+      if(link.getAttribute('aria-label') !== name) link.setAttribute('aria-label', name);
+    });
+  }
+
+  function init(){
+    markActive(); syncBadges();
+    var t = 0, mo = new MutationObserver(function(){ clearTimeout(t); t = setTimeout(syncBadges, 30); });
+    document.querySelectorAll('[data-bottom-nav] .bottom-nav_badge').forEach(function(b){
+      mo.observe(b, {childList:true, characterData:true, subtree:true});
+    });
+    document.documentElement.classList.toggle('has-bottom-nav', !!document.querySelector('[data-bottom-nav]'));
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+
+/* Core – Consent v1.0.0 – cookie consent + the Site Settings sheet. Core 2.0 (not commerce-specific).
+   Uses the Sheet engine (window.CoreSheet / window.ShopFlowSheet). Pairs with the head snippet (Consent Mode v2 defaults),
+   which must run BEFORE the Google tag. Categories: essential (always on), analytics, marketing.
+
+   Markup (Webflow component "Core / Site Settings", placed in the Page Shell Overlay slot):
+     [data-sheet="site-settings"]  the settings sheet (cog opens it). Sections: [data-settings-section] (privacy now, appearance later)
+       [data-consent-switch="analytics|marketing|essential"]   role="switch" buttons
+     [data-sheet="cookie-notice"]  first-visit notice
+     [data-consent-action="accept-all|necessary|save|customize"]
+   Opening: any [data-sheet-open="site-settings"] (the brand-bar cog) or CoreConsent.open().
+   Deferred third-party scripts: <script type="text/plain" data-consent="analytics|marketing" src|inline> run once consent is given.
+   Events: "core:consent" on document (detail = {analytics, marketing}). */
+(function(){
+  if(window.CoreConsent) return;
+  var KEY = 'core-consent-v1', CATS = ['analytics','marketing'];
+  function sheet(){ return window.CoreSheet || window.ShopFlowSheet || null; }
+  function read(){ try{ return JSON.parse(localStorage.getItem(KEY)) || null; }catch(e){ return null; } }
+  function write(s){ try{ localStorage.setItem(KEY, JSON.stringify(s)); }catch(e){} }
+  function g(v){ return v ? 'granted' : 'denied'; }
+
+  function apply(s){
+    if(typeof window.gtag === 'function'){
+      window.gtag('consent', 'update', { analytics_storage: g(s.analytics), ad_storage: g(s.marketing), ad_user_data: g(s.marketing), ad_personalization: g(s.marketing) });
+    }
+    document.querySelectorAll('script[type="text/plain"][data-consent]').forEach(function(old){
+      if(!s[old.getAttribute('data-consent')] || old.hasAttribute('data-consent-ran')) return;
+      old.setAttribute('data-consent-ran', '');
+      var n = document.createElement('script');
+      Array.prototype.forEach.call(old.attributes, function(a){ if(a.name !== 'type' && a.name.indexOf('data-consent') !== 0) n.setAttribute(a.name, a.value); });
+      if(!old.src) n.text = old.text;
+      old.parentNode.insertBefore(n, old.nextSibling);
+    });
+    try{ document.dispatchEvent(new CustomEvent('core:consent', {detail: {analytics: !!s.analytics, marketing: !!s.marketing}})); }catch(e){}
+  }
+
+  function sync(s){
+    s = s || read() || {};
+    document.querySelectorAll('[data-consent-switch]').forEach(function(sw){
+      var c = sw.getAttribute('data-consent-switch'), on = c === 'essential' ? true : !!s[c];
+      sw.setAttribute('role', 'switch'); if(sw.tagName === 'BUTTON') sw.type = 'button'; else if(!sw.hasAttribute('tabindex')) sw.setAttribute('tabindex', '0');
+      sw.setAttribute('aria-checked', on ? 'true' : 'false');
+      if(c === 'essential') sw.setAttribute('aria-disabled', 'true');
+    });
+  }
+  function fromSwitches(){
+    var s = {};
+    CATS.forEach(function(c){ var sw = document.querySelector('[data-consent-switch="' + c + '"]'); s[c] = !!sw && sw.getAttribute('aria-checked') === 'true'; });
+    return s;
+  }
+  function set(s){
+    s = { analytics: !!s.analytics, marketing: !!s.marketing, v: 1, ts: new Date().toISOString() };
+    write(s); sync(s); apply(s);
+    if(sheet()) sheet().close();
+    return s;
+  }
+  function open(){ sync(); if(sheet()) sheet().open('site-settings'); }
+
+  document.addEventListener('click', function(e){
+    if(!e.target.closest) return;
+    var sw = e.target.closest('[data-consent-switch]');
+    if(sw){
+      e.preventDefault();
+      if(sw.getAttribute('aria-disabled') === 'true') return;
+      sw.setAttribute('aria-checked', sw.getAttribute('aria-checked') === 'true' ? 'false' : 'true');
+      return;
+    }
+    var b = e.target.closest('[data-consent-action]');
+    if(!b) return;
+    e.preventDefault();
+    var a = b.getAttribute('data-consent-action');
+    if(a === 'accept-all') set({analytics: true, marketing: true});
+    else if(a === 'necessary') set({analytics: false, marketing: false});
+    else if(a === 'save') set(fromSwitches());
+    else if(a === 'customize'){ if(sheet()) sheet().close(null, {instant: true, noFocus: true}); setTimeout(open, 30); }
+  });
+  document.addEventListener('sheet:open', function(){ sync(); });
+  /* Webflow renders these as div/link elements: make them real controls for keyboard and screen readers */
+  function prepActions(){
+    document.querySelectorAll('[data-consent-action]').forEach(function(b){
+      if(b.tagName === 'BUTTON'){ b.type = 'button'; return; }
+      b.setAttribute('role', 'button'); if(!b.hasAttribute('tabindex')) b.setAttribute('tabindex', '0'); b.removeAttribute('href');
+    });
+  }
+  document.addEventListener('keydown', function(e){
+    if((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('[data-consent-switch]:not(button),[data-consent-action]:not(button)')){ e.preventDefault(); e.target.click(); }
+  });
+
+  function init(){
+    var s = read();
+    prepActions(); sync(s);
+    if(s) apply(s);
+    else if(document.querySelector('[data-sheet="cookie-notice"]')){
+      setTimeout(function(){ if(!read() && sheet() && !sheet().top()) sheet().open('cookie-notice'); }, 1200);
+    }
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+
+  window.CoreConsent = { get: read, set: set, open: open };
 })();
 
 /* ShopFlow – Quick Add v1.1.1 – product size picker shown in the shared ShopFlow drawer (Sheet v1.2.0).

@@ -15,9 +15,9 @@ bundle() { # bundle <output> <files...>
   } > "$OUT/$out"
 }
 
-# ShopFlow Core (every page, Page Shell): page stability + sheet + quick add + size labels + cart page background
-bundle shopflow-core.css shopflow-page-stability.css shopflow-sheet.css shopflow-quick-add.css shopflow-size-labels.css shopflow-cart-page-bg.css
-bundle shopflow-core.js  shopflow-sheet.js shopflow-quick-add.js shopflow-size-labels.js
+# ShopFlow Core (every page, Page Shell): page stability + sheet + bottom nav + consent + brand bar + quick add + size labels + cart page background
+bundle shopflow-core.css shopflow-page-stability.css shopflow-sheet.css core-bottom-nav.css core-consent.css shopflow-brand-bar.css shopflow-quick-add.css shopflow-size-labels.css shopflow-cart-page-bg.css
+bundle shopflow-core.js  shopflow-sheet.js core-bottom-nav.js core-consent.js shopflow-quick-add.js shopflow-size-labels.js
 
 # Single-feature files (copied as-is)
 for f in shopflow-pdp shopflow-cart-drawer shopflow-mobile-nav shopflow-collection-filters; do

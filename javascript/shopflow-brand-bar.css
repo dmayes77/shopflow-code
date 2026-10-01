@@ -1,0 +1,15 @@
+/* ShopFlow – Brand Bar v1.0.1 (logo pinned left, cog pinned right) – on phones/tablets (≤991px) with a bottom nav, the OYG navbar becomes a brand bar:
+   logo + settings cog (opens the Site Settings sheet). Search, cart, account and the hamburger live in the bottom nav instead.
+   Only the visible icons are hidden: the search modal and Storesynk openers stay in the page because the
+   bottom-nav tabs trigger them (click:.search-popup-opener, click:.navbar-actions [sf-cart-open]). */
+@media (max-width:991px){
+  html.has-bottom-nav .navbar-compact_mobile,
+  html.has-bottom-nav .navbar-actions > .navbar_link:not([data-settings-open]),
+  html.has-bottom-nav .navbar-actions > .cart-opener,
+  html.has-bottom-nav .navbar-actions > .search-popup-opener > .icon-1x1-medium{display:none!important}
+  /* brand bar layout: logo on the left edge, cog on the right edge */
+  html.has-bottom-nav .navbar-compact_inner{justify-content:space-between}
+  html.has-bottom-nav .navbar-compact_inner > .brand-logo{margin-right:auto}
+  html.has-bottom-nav .navbar-compact_actions{margin-left:auto;justify-content:flex-end}
+  html.has-bottom-nav .navbar-actions{display:flex;align-items:center;justify-content:flex-end}
+}
