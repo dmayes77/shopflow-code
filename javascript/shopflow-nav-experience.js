@@ -58,16 +58,21 @@
   function businessInfo(){
     var source = document.querySelector('[data-store-settings]');
     if(!source) return null;
-    var attr = function(name){ return (source.getAttribute(name) || '').trim(); };
-    var cityLine = [attr('data-store-city'), attr('data-store-state'), attr('data-store-zip')].filter(Boolean).join(' ');
-    var address = [attr('data-store-street'), attr('data-store-address-2'), cityLine, attr('data-store-country')].filter(Boolean).join(', ');
+    var value = function(name){
+      var attributeValue = (source.getAttribute(name) || '').trim();
+      if(attributeValue) return attributeValue;
+      var child = source.querySelector('[' + name + ']');
+      return child ? child.textContent.replace(/\s+/g, ' ').trim() : '';
+    };
+    var cityLine = [value('data-store-city'), value('data-store-state'), value('data-store-zip')].filter(Boolean).join(' ');
+    var address = [value('data-store-street'), value('data-store-address-2'), cityLine, value('data-store-country')].filter(Boolean).join(', ');
     var hours = source.querySelector('[data-store-hours]');
     return {
-      name: attr('data-store-business-name'),
-      email: attr('data-store-customer-email') || attr('data-store-email'),
-      phone: attr('data-store-customer-phone') || attr('data-store-phone'),
+      name: value('data-store-business-name'),
+      email: value('data-store-customer-email') || value('data-store-email'),
+      phone: value('data-store-customer-phone') || value('data-store-phone'),
       address: address,
-      directions: attr('data-store-directions-url'),
+      directions: value('data-store-directions-url'),
       hours: hours ? hours.textContent.replace(/\s+/g, ' ').trim() : ''
     };
   }
