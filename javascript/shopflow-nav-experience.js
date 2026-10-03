@@ -1,10 +1,10 @@
-/* ShopFlow – Navigation experience v1.1.1 (hidden Webflow condition elements ignored)
- * ShopFlow-specific mobile navigation on top of Core Bottom Nav:
+/* ShopFlow – Navigation experience v1.1.2 (native Webflow tab configuration)
+ * ShopFlow-specific behavior on top of the native Core Bottom Nav configuration:
  *   Home · Shop · New · Cart · More
  *
- * The existing Webflow component stays reusable. This layer remaps Search to a
- * "New" storefront view, remaps Account to the shared More sheet, and adds the
- * store's CMS-managed contact, directions and hours above its privacy settings.
+ * Webflow owns each tab's label, link, action and icon. This layer activates the
+ * "New" storefront view and adds the store's CMS-managed contact, directions
+ * and hours above the shared More/privacy settings.
  * On touch breakpoints the brand bar exposes the existing Shopify account control.
  *
  * Page Shell CMS contract (the singleton Store Settings item, rendered once on every page):
@@ -29,10 +29,6 @@
 
   var TAB = '[data-bottom-nav-tab]';
   var LINK = '[data-bottom-nav-link]';
-  var NEW_URL = '/shop-all?view=new';
-
-  var newIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 1.35 4.15L17.5 8.5l-4.15 1.35L12 14l-1.35-4.15L6.5 8.5l4.15-1.35L12 3Z"></path><path d="m18.5 14 .75 2.25L21.5 17l-2.25.75L18.5 20l-.75-2.25L15.5 17l2.25-.75L18.5 14Z"></path><path d="m5 13 .55 1.45L7 15l-1.45.55L5 17l-.55-1.45L3 15l1.45-.55L5 13Z"></path></svg>';
-  var moreIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg>';
 
   function tabByLabel(label){
     return Array.prototype.find.call(document.querySelectorAll(TAB), function(tab){
@@ -41,25 +37,6 @@
       return (link && (link.getAttribute('data-label') || link.getAttribute('aria-label')) === label) ||
         (text && text.textContent.trim() === label);
     }) || null;
-  }
-
-  function setTab(tab, options){
-    if(!tab) return;
-    var link = tab.querySelector(LINK);
-    var label = tab.querySelector('.bottom-nav_label');
-    var icon = tab.querySelector('.bottom-nav_icon-slot');
-    tab.setAttribute('data-tab-action', options.action || '');
-    tab.setAttribute('data-nav-role', options.role);
-    if(label) label.textContent = options.label;
-    if(icon) icon.innerHTML = options.icon;
-    if(link){
-      link.setAttribute('href', options.href);
-      link.setAttribute('aria-label', options.ariaLabel || options.label);
-      link.setAttribute('data-label', options.ariaLabel || options.label);
-      if(options.action && options.action.indexOf('sheet:') === 0) link.setAttribute('aria-haspopup', 'dialog');
-      else link.removeAttribute('aria-haspopup');
-      link.removeAttribute('aria-current');
-    }
   }
 
   function businessInfo(){
@@ -239,14 +216,11 @@
   }
 
   function init(){
-    var searchTab = tabByLabel('Search');
-    var accountTab = tabByLabel('Account');
+    var newTab = tabByLabel('New');
     var shopTab = tabByLabel('Shop');
-    setTab(searchTab, {label:'New', ariaLabel:'New arrivals', href:NEW_URL, action:'', role:'new', icon:newIcon});
-    setTab(accountTab, {label:'More', ariaLabel:'More', href:'#more', action:'sheet:site-settings', role:'more', icon:moreIcon});
     var hydrate = function(){
       addMoreContent();
-      activateNewView(searchTab, shopTab);
+      activateNewView(newTab, shopTab);
     };
     hydrate();
     window.setTimeout(hydrate, 250);

@@ -19,7 +19,7 @@ layout, behavior and accessibility on top of Storesynk's `sf-*` attributes.
 | `core-bottom-nav.css` / `.js` | 1.0.0 | Page Shell › **ShopFlow Core Code** – behavior for Navigation / Bottom Nav (tab actions, active tab, badges) | Core 2.0 candidate |
 | `core-consent.css` / `.js` | 1.0.0 | Page Shell › **ShopFlow Core Code** – cookie consent + Site Settings sheet (Google Consent Mode v2) | Core 2.0 candidate |
 | `core-consent-head.html` | 1.0.0 | **Site settings › Custom code › Head**, above the Google tag – Consent Mode defaults | Core 2.0 candidate |
-| `shopflow-brand-bar.css` / `shopflow-nav-experience.js` | 1.1.0 / 1.1.1 | Page Shell › **ShopFlow Core Code** – ≤991px the brand bar shows logo + account; bottom nav is Home · Shop · New · Cart · More; More combines CMS-managed store information with privacy settings | ShopFlow |
+| `shopflow-brand-bar.css` / `shopflow-nav-experience.js` | 1.1.0 / 1.1.2 | Page Shell › **ShopFlow Core Code** – ≤991px the brand bar shows logo + account; bottom nav is Home · Shop · New · Cart · More; More combines CMS-managed store information with privacy settings | ShopFlow |
 | `shopflow-store-fill.js` | 1.0.0 | Page Shell › **ShopFlow Core Code** – fills `[data-store="field"]` slots (logos, footer copy, contact, policies) from the global Store Settings layer | Core 2.0 candidate |
 | `shopflow-quick-add.css` / `.js` | 1.1.0 / 1.1.1 | Page Shell › embed **ShopFlow Core Code** (section 2) | ShopFlow |
 | `shopflow-size-labels.css` / `.js` | 1.0.0 | Page Shell › ShopFlow Core – every size button shows S / M / L in a rounded square | ShopFlow |
@@ -75,7 +75,7 @@ Phones and tablets (≤991px) get an app-style bottom nav; desktop is unchanged.
 
 - Page Shell has two new slots: **Mobile Nav** (holds `ShopFlow / Bottom Nav`) and **Overlay** (hidden sheet content).
 - Core components: `Navigation / Bottom Nav` (Tabs slot) and `Navigation / Bottom Nav Tab` (props Label, Link, Action; slots Icon, Badge).
-- ShopFlow component markup remains Home · Shop · Search · Cart · Account for reuse, then `shopflow-nav-experience.js` maps it to **Home · Shop · New · Cart · More** at runtime. New opens `/shop-all?view=new`; More opens the shared store/privacy sheet. The Cart badge is `ShopFlow / Cart Count Badge` (`sf-cart-count`).
+- `ShopFlow / Bottom Nav` is configured natively in Webflow as **Home · Shop · New · Cart · More**. New links to `/shop-all?view=new`; More uses the `sheet:site-settings` action to open the shared store/privacy sheet. `shopflow-nav-experience.js` supplies only the New-view and CMS-backed More-sheet behavior. The Cart badge is `ShopFlow / Cart Count Badge` (`sf-cart-count`).
 - Tab **Action**: empty = normal link · `sheet:NAME` opens a sheet · `click:SELECTOR` clicks an existing control. **Link** is the no-JavaScript fallback.
 - Sheets cover the bottom nav (sheet z-index 1002, bar 1000).
 - The outer `.bottom-nav` reserves the bar's height, so page content is never hidden behind it.
