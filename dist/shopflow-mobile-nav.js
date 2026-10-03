@@ -1,4 +1,5 @@
-/* ShopFlow – Mobile Nav v1.0.2 – wires the navbar hamburger to the [data-sheet="mobile-nav"] content, shown in the shared ShopFlow drawer (Sheet v1.2.0, left mode). */
+/* ShopFlow – Mobile Nav v1.1.0 – wires the Shop tab and navbar hamburger to the
+   [data-sheet="mobile-nav"] content, shown as a bottom sheet by the shared Sheet engine. */
 (function(){
   if(window.__sfMobileNav) return; window.__sfMobileNav = true;
   var TRIGGER = '.navbar-compact_mobile-trigger';

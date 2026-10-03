@@ -1,6 +1,6 @@
-/* ShopFlow – Mobile Nav v1.0.1 – left drawer menu built on ShopFlow Sheet v1.1.0 ([data-sheet-mode="left"]). Core 2.0 tokens.
-   Opened by the navbar hamburger (.navbar-compact_mobile-trigger); the old Webflow dropdown list is hidden.
-   Installed in Navigation / OYG › embed "ShopFlow Mobile Nav Code". v1.0.1: search field is a rounded square (Radius/small). */
+/* ShopFlow – Mobile Nav v1.1.0 – Shop bottom sheet built on the shared ShopFlow Sheet engine.
+   Opened by the bottom-nav Shop tab or navbar hamburger; the old Webflow dropdown list is hidden.
+   Installed in Navigation / OYG › embed "ShopFlow Mobile Nav Code". */
 .navbar-compact_mobile-list{display:none!important}
 [data-mobile-nav]{--mnav-brand:var(--_theme---action--primary,#FF6A00);--mnav-line:var(--_theme---border--subtle,#ECE6DF);--mnav-tint:var(--_theme---background--secondary,#FFF7F0)}
 [data-mobile-nav] [data-sheet-panel]{font-size:1rem}
@@ -30,3 +30,36 @@
 [data-mnav-link]:focus-visible,[data-mnav-toggle]:focus-visible,[data-mnav-sublink]:focus-visible,[data-mnav-search]:focus-visible,[data-mnav-feature]:focus-visible{outline:2px solid var(--_theme---focus--ring,#f60);outline-offset:2px}
 [data-mnav-note]{display:flex;align-items:center;gap:.5rem;font-size:.875rem;font-weight:600;color:var(--_theme---text--secondary,#555)}
 [data-mobile-nav] [data-sheet-footer]{background:var(--mnav-tint)}
+
+/* Shop sheet v1.1.0: native Webflow content styled to match the mobile reference.
+   The nav remains visible above this browsing sheet; Cart deliberately uses a
+   separate modal treatment that covers the nav. */
+[data-sheet-host][data-sheet-view="mobile-nav"] [data-sheet-panel]{
+  border-radius:2rem 2rem 0 0;
+  background:var(--_theme---background--primary,#fff)
+}
+[data-sheet-host][data-sheet-view="mobile-nav"] [data-sheet-head]{
+  min-height:3.75rem;padding:1rem 1rem 0;border-bottom:0
+}
+[data-sheet-host][data-sheet-view="mobile-nav"] [data-sheet-title]{display:none}
+[data-sheet-host][data-sheet-view="mobile-nav"] [data-sheet-close]{margin-left:auto}
+[data-sheet-host][data-sheet-view="mobile-nav"] [data-sheet-x]{
+  width:2.8rem;height:2.8rem;border:0;border-radius:999px;
+  background:var(--_theme---background--secondary,#f2efec);
+  color:var(--_theme---text--primary,#111)
+}
+[data-sheet-host][data-sheet-view="mobile-nav"] [data-sheet-body]{padding:0;overscroll-behavior:contain}
+html:has([data-sheet-host][data-sheet-view="mobile-nav"].is-open) [data-bottom-nav]{z-index:1003}
+
+@media(max-width:479px){
+  .shop-sheet{padding-right:1rem;padding-left:1rem}
+  .shop-sheet_category{grid-template-columns:3.7rem minmax(0,1fr) 1.25rem;gap:.7rem;min-height:4.85rem}
+  .shop-sheet_image{width:3.7rem;height:3.7rem}
+  .shop-sheet_copy-title{font-size:1.18rem}
+  .shop-sheet_copy-desc{font-size:.82rem}
+  .shop-sheet_quick-grid{grid-template-columns:1fr}
+  .shop-sheet_quick-label{white-space:normal}
+}
+@media(min-width:768px) and (max-width:991px){
+  .shop-sheet{padding-right:1.75rem;padding-left:1.75rem}
+}
