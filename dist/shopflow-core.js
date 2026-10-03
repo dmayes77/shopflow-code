@@ -466,7 +466,7 @@
   window.CoreConsent = { get: read, set: set, open: open };
 })();
 
-/* ShopFlow – Navigation experience v1.1.2 (native Webflow tab configuration)
+/* ShopFlow – Navigation experience v1.2.0 (native Webflow tab configuration)
  * ShopFlow-specific behavior on top of the native Core Bottom Nav configuration:
  *   Home · Shop · New · Cart · More
  *
@@ -653,16 +653,22 @@
 
   function activateNewView(newTab, shopTab){
     var isNew = location.pathname.replace(/\/+$/, '') === '/shop-all' && new URLSearchParams(location.search).get('view') === 'new';
+    document.documentElement.classList.toggle('is-new-view', isNew);
     if(newTab) newTab.classList.toggle('is-active', isNew);
     if(shopTab && isNew) shopTab.classList.remove('is-active');
     var newLink = newTab && newTab.querySelector(LINK);
     var shopLink = shopTab && shopTab.querySelector(LINK);
     if(newLink){ if(isNew) newLink.setAttribute('aria-current', 'page'); else newLink.removeAttribute('aria-current'); }
     if(shopLink && isNew) shopLink.removeAttribute('aria-current');
+    var hero = document.querySelector('.shop-all-hero');
+    if(hero){
+      if(isNew) hero.setAttribute('aria-hidden', 'true');
+      else hero.removeAttribute('aria-hidden');
+    }
+    var catalog = document.querySelector('.shop-all-catalog');
+    if(catalog && !catalog.id) catalog.id = 'new-arrivals';
     if(!isNew) return;
 
-    var heading = document.querySelector('main h1, h1');
-    if(heading && heading.textContent.trim() === 'Shop All') heading.textContent = 'New Arrivals';
     var store = businessInfo();
     document.title = 'New Arrivals | ' + ((store && store.name) || 'ShopFlow');
 

@@ -16,7 +16,7 @@ bundle() { # bundle <output> <files...>
 }
 
 # ShopFlow Core (every page, Page Shell): page stability + sheet + bottom nav + consent + ShopFlow nav/brand bar + quick add + size labels + cart page background
-bundle shopflow-core.css shopflow-page-stability.css shopflow-announcement.css shopflow-sheet.css core-bottom-nav.css core-consent.css shopflow-brand-bar.css shopflow-quick-add.css shopflow-size-labels.css shopflow-cart-page-bg.css
+bundle shopflow-core.css shopflow-page-stability.css shopflow-announcement.css shopflow-sheet.css core-bottom-nav.css core-consent.css shopflow-brand-bar.css shopflow-new-view.css shopflow-quick-add.css shopflow-size-labels.css shopflow-cart-page-bg.css
 bundle shopflow-core.js  shopflow-announcement.js shopflow-sheet.js core-bottom-nav.js core-consent.js shopflow-nav-experience.js shopflow-store-fill.js shopflow-quick-add.js shopflow-size-labels.js
 
 # Single-feature files (copied as-is)
