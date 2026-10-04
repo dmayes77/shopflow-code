@@ -1,4 +1,4 @@
-/* ShopFlow – Mobile Nav v1.1.2 – wires the Shop tab and navbar hamburger to the
+/* ShopFlow – Mobile Nav v1.1.3 – wires the Shop tab and navbar hamburger to the
    [data-sheet="mobile-nav"] content, shown as a bottom sheet by the shared Sheet engine. */
 (function(){
   if(window.__sfMobileNav) return; window.__sfMobileNav = true;
@@ -51,6 +51,10 @@
   function prep(){
     document.querySelectorAll(TRIGGER).forEach(function(t){ t.setAttribute('aria-haspopup','dialog'); t.setAttribute('aria-expanded','false'); });
     var s = sheet(); if(!s) return;
+    /* CoreSheet supplies the visible header, grabber, and close button. Collapse
+       the obsolete embedded header so mobile never renders a second top row. */
+    var legacyHead = s.querySelector('[data-sheet-head="1"]');
+    if(legacyHead){ legacyHead.hidden = true; legacyHead.style.display = 'none'; legacyHead.setAttribute('aria-hidden','true'); }
     /* Focus the non-interactive sheet heading on open. This prevents a
        pointer-opened Shop sheet from painting a focus ring on the first card,
        while keyboard users still retain :focus-visible on real controls. */
