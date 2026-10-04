@@ -1,4 +1,4 @@
-/* ShopFlow – Cart view v2.0.1
+/* ShopFlow – Cart view v2.0.2
  * Core Sheet owns the shell. Storesynk's popup stays in the DOM as the hidden
  * commerce engine. Only ShopFlow-owned .sf-cart-view__* markup is presented.
  */
@@ -18,8 +18,15 @@
 [data-sheet-host][data-sheet-view="cart"] [data-sheet-body].sf-cart-view__body{
   display:flex;
   flex-direction:column;
+  box-sizing:border-box;
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  min-width:0;
+  max-width:100%;
   min-height:0;
-  padding:0 1rem
+  padding:0 1rem;
+  overflow-x:clip
 }
 .sf-cart-view__toolbar{
   display:flex;
@@ -42,13 +49,17 @@
 }
 .sf-cart-view__clear:hover{text-decoration:underline}
 
-.sf-cart-view__items{display:block;flex:1 1 auto;min-height:0}
+.sf-cart-view__items{display:block;flex:1 1 auto;width:100%;min-width:0;max-width:100%;min-height:0}
 .sf-cart-view__item{
   display:grid;
   grid-template-columns:4.75rem minmax(0,1fr) 2.75rem;
   grid-template-areas:"media info remove" "media controls controls";
   gap:.75rem .875rem;
   align-items:start;
+  box-sizing:border-box;
+  width:100%;
+  min-width:0;
+  max-width:100%;
   margin:0;
   padding:1rem 0;
   border-bottom:1px solid var(--_theme---border--subtle,#e5e5e5)
@@ -84,9 +95,10 @@
 .sf-cart-view__prices{display:flex;align-items:baseline;gap:.5rem;margin-top:.45rem}
 .sf-cart-view__price{font-size:1rem;font-weight:700}
 .sf-cart-view__price-was{color:var(--_theme---text--muted,#777);font-size:.75rem;text-decoration:line-through}
-.sf-cart-view__controls{grid-area:controls;display:flex;align-items:center;justify-content:space-between;gap:.75rem}
+.sf-cart-view__controls{grid-area:controls;display:flex;min-width:0;align-items:center;justify-content:space-between;gap:.75rem}
 .sf-cart-view__stepper{
   display:inline-grid;
+  flex:0 0 auto;
   grid-template-columns:2.5rem 2.5rem 2.5rem;
   align-items:center;
   height:2.5rem;
@@ -152,6 +164,8 @@
 [data-sheet-host][data-sheet-view="cart"] [data-sheet-footer].sf-cart-view__footer{gap:.65rem}
 .sf-cart-view__summary{
   display:grid;
+  width:100%;
+  min-width:0;
   grid-template-columns:minmax(0,1fr) auto;
   align-items:baseline;
   gap:.2rem 1rem;
