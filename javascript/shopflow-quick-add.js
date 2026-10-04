@@ -1,11 +1,12 @@
-/* ShopFlow – Quick Add v1.1.1 – product size picker shown in the shared ShopFlow drawer (Sheet v1.2.0).
+/* ShopFlow – Quick Add v1.2.0 – product option picker shown in the shared Mayes Core sheet.
    Installed in Page Shell › embed "ShopFlow Core Code" (section 2).
    Card "Add to cart" / "+" on a product with 2+ sizes opens the [data-quick-add] sheet that sits next to the card in the
    same collection item (it carries its own sf-product context). One-size products add straight to cart.
    Storesynk handles variant selection (sf-change-option / sf-option-value) and cart (sf-add-to-cart / sf-buy-now). */
 (function(){
   if(window.__sfQuickAdd) return; window.__sfQuickAdd = true;
-  var CARD_BTN = '.product-card-actions button, .product-card-actions [sf-add-to-cart]';
+  var CARD_BTN = '[sf-add-to-cart]';
+  function sheetApi(){ return window.CoreSheet || window.ShopFlowSheet; }
 
   function sheetFor(btn){
     var item = btn.closest('.w-dyn-item, [role="listitem"]');
@@ -36,14 +37,15 @@
   /* 1. Intercept the card button before Storesynk sees it (capture phase). */
   document.addEventListener('click', function(e){
     var btn = e.target.closest && e.target.closest(CARD_BTN);
-    if(!btn || btn.closest('[data-quick-add]') || !window.ShopFlowSheet) return;
+    var api = sheetApi();
+    if(!btn || btn.closest('[data-quick-add]') || !api) return;
     var s = sheetFor(btn);
     if(!s) return;
     prep(s);
     if(options(s).length < 2) return;            // one size: let Storesynk add it
     e.preventDefault(); e.stopImmediatePropagation();
     reset(s);
-    ShopFlowSheet.open(s, {returnFocus: btn});
+    api.open(s, {returnFocus: btn});
   }, true);
 
   /* 2. Inside the sheet: size pick and the "choose a size first" gate. */
@@ -63,7 +65,8 @@
         var f = options(s)[0]; f && f.focus({preventScroll:true});
         return;
       }
-      setTimeout(function(){ ShopFlowSheet.close(s, {instant:true, noFocus:true}); }, 150); // Storesynk opens the cart / checkout
+      var api = sheetApi();
+      setTimeout(function(){ api && api.close(s, {instant:true, noFocus:true}); }, 150); // Storesynk opens the cart / checkout
     }
   }, true);
 
