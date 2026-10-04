@@ -1,4 +1,4 @@
-/* ShopFlow – Cart Drawer skin v1.2.1
+/* ShopFlow – Cart Drawer skin v1.3.0
  * Storesynk remains the cart engine. This file turns its popup into a polished
  * bottom sheet on phones and a right drawer above 767px. The popup deliberately
  * sits above the mobile bottom nav to remove navigation distractions while the
@@ -44,10 +44,8 @@ html.sf-cart-modal-open,html.sf-cart-modal-open body{overflow:hidden;overscroll-
 [sf-cart] [data-cart-clear]:hover{text-decoration:underline}
 [sf-cart] .cart_header [sf-cart-close]{
   position:static;display:inline-flex;align-items:center;justify-content:center;flex:none;
-  width:2.75rem;height:2.75rem;margin:0 -.625rem 0 0;border-radius:999px;
-  cursor:pointer;color:var(--_theme---text--secondary,#666)
+  margin:0 -.625rem 0 0
 }
-[sf-cart] .cart_header [sf-cart-close]:hover{background:var(--_theme---background--secondary,#f5f3ee);color:var(--_theme---text--primary,#111)}
 
 /* scrolling product list */
 [sf-cart] [sf-cart-list]{
@@ -192,7 +190,6 @@ html.sf-cart-modal-open,html.sf-cart-modal-open body{overflow:hidden;overscroll-
     border-radius:999px;background:var(--_theme---border--primary,#bbb)
   }
   [sf-cart] .cart_header h3{font-size:1.65rem}
-  [sf-cart] .cart_header [sf-cart-close]{display:none}
   [sf-cart] [sf-cart-list]{padding:0 1rem}
   [sf-cart] [sf-cart-item]{grid-template-columns:5.25rem minmax(0,1fr) auto;column-gap:.8rem}
   [sf-cart] [sf-cart-item] .cart-item-image{width:5.25rem;height:6.25rem}
