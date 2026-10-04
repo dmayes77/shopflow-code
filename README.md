@@ -25,8 +25,8 @@ layout, behavior and accessibility on top of Storesynk's `sf-*` attributes.
 | `shopflow-quick-add.css` / `.js` | 1.1.0 / 1.1.1 | Page Shell › embed **ShopFlow Core Code** (section 2) | ShopFlow |
 | `shopflow-size-labels.css` / `.js` | 1.0.0 | Page Shell › ShopFlow Core – every size button shows S / M / L in a rounded square | ShopFlow |
 | `shopflow-cart-page-bg.css` | 1.0.0 | Page Shell › embed **ShopFlow Core Code** (section 3) | ShopFlow |
-| `shopflow-cart-drawer.css` / `.js` | 1.2.1 | Page Shell › cart embed **Popup CSS** – Storesynk's cart as a bottom sheet on phones (swipe down to close) and a right drawer above; covers and disables the bottom nav while open | ShopFlow |
-| `shopflow-mobile-nav.css` / `.js` | 1.1.0 / 1.1.0 | Navigation / OYG › embed **ShopFlow Mobile Nav Code** | ShopFlow |
+| `shopflow-cart-drawer.css` / `.js` | 2.0.0 | Page Shell › cart embed **Popup CSS** – adapter from Storesynk cart state/actions to a ShopFlow-owned Cart view inside Core Sheet | ShopFlow |
+| `shopflow-mobile-nav.css` / `.js` | 1.1.1 / 1.1.1 | Navigation / OYG › embed **ShopFlow Mobile Nav Code** | ShopFlow |
 | `shopflow-pdp.css` / `.js` | 1.2.8 | Products Template › embed **ShopFlow PDP Code** | ShopFlow |
 | `shopflow-collection-filters.css` | 1.2.0 | Shop All › filters embed (`<link id="shopflow-collection-filters-css">`) | ShopFlow |
 | `shopflow-collection-filters.js` | 1.2.0 | Shop All › filters embed | ShopFlow |
@@ -51,6 +51,7 @@ the drawer and moved back on close, so CMS bindings and Storesynk product contex
 | Phone menu | Navigation / OYG › `[data-sheet="mobile-nav"]` | left | hamburger |
 | Size guide | Products Template › `[data-sheet="size-guide"]` | center | "Size guide" link |
 | Quick Add | each product card › `[data-sheet="quick-add"]` (one per product: it carries that product's sizes) | auto | card "+" / Add to cart |
+| Cart | JavaScript-owned `[data-sheet="cart"]`; reads/proxies Storesynk `[sf-cart]` | drawer | existing `[sf-cart-open]` control |
 
 Modes: `auto` (bottom sheet ≤991px, centered dialog above), `drawer` (bottom sheet ≤767px, right-side drawer above –
 for Cart and Filters), `bottom`, `center`, `left`, `right`. The host carries `data-sheet-as` = the presentation in use.
@@ -58,10 +59,11 @@ Heights (bottom sheets, v1.3.0): `data-sheet-height` = `compact` (quick actions)
 (Cart, Filters, Search) · `full`; omit to fit the content (up to 88%). Bottom sheets have a drag handle and close with
 a swipe down on the handle or head. While open, everything else on the page is `inert`. Also available as
 `window.CoreSheet`.
+The Cart adapter leaves Storesynk's original popup DOM in place as the commerce engine, but keeps that popup hidden.
+It renders only ShopFlow-owned markup in Core Sheet and proxies quantity, remove, clear and checkout actions back to
+Storesynk. No Storesynk presentation classes or cart chrome are copied into the visible sheet.
+
 Not in the shared drawer, on purpose:
-- **Cart** – Storesynk's own popup (`[sf-cart-popup]`); Storesynk opens it after add-to-cart. Styled to match the
-  Sheet (v1.2.0: tall bottom sheet ≤767px with drag handle + swipe-to-close, fixed subtotal/actions, right drawer
-  above, Esc closes, z-index 1002). While open it covers the bottom nav and removes that nav from the focus order.
 - **Collection filters** – must stay inside the Storesynk collection (`[sf-collection]`) to keep filtering; it is
   a sidebar on desktop and a bottom sheet on phones/tablets (swipe down to close; Sort and Category/Size/Style as chips;
   Style splits into sections from Shopify tag prefixes, see `docs/filter-tag-convention.md`).

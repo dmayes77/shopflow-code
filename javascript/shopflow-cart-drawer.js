@@ -1,286 +1,389 @@
-/* ShopFlow – Cart content adapter v1.9.0
- * Works on top of Storesynk's cart ([sf-cart]); Storesynk remains responsible
- * for product, quantity, price, checkout and persistence.
- *
- * Adds the presentation/accessibility behavior the Webflow cart needs:
- *  - quantity floor of 1 and an explicit remove control
- *  - live "Your Cart (N)" and subtotal labels
- *  - working Clear Cart and Continue Shopping controls
- *  - modal scroll lock + bottom-nav inert state while open
- *  - Escape, focus containment and swipe-down-to-close on phones
+/* ShopFlow – Cart adapter v2.0.0
+ * Storesynk owns cart state and commerce actions. ShopFlow reads that state,
+ * renders an independent Cart view, and proxies actions back to Storesynk.
+ * Core Sheet remains the only visible drawer shell.
  */
 (() => {
   if (window.__shopflowCartDrawer) return;
   window.__shopflowCartDrawer = true;
 
   const cart = document.querySelector('[sf-cart]');
-  if (!cart) return;
-  const popup = cart.closest('[sf-cart-popup]');
-  if (!popup) return;
+  const popup = cart && cart.closest('[sf-cart-popup]');
+  if (!cart || !popup) return;
 
-  const setClass = (el, name, on) => {
-    if (el && el.classList.contains(name) !== on) el.classList.toggle(name, on);
-  };
-  const setText = (el, value) => {
-    if (el && el.textContent !== value) el.textContent = value;
-  };
-  const KEYS = '[sf-change-quantity-dec],[sf-change-quantity-inc],[sf-cart-item-remove],[sf-cart-close],[data-cart-clear],[data-cart-continue]';
-  const title = cart.querySelector('.cart_header h3');
-  const subtotalLabel = cart.querySelector('.cart_subtotal-row > :first-child');
-  const clearControl = cart.querySelector('[data-cart-clear]');
-  const note = cart.querySelector('[data-cart-note]');
-  const continueControl = cart.querySelector('[data-cart-continue]');
-  const bottomNav = document.querySelector('[data-bottom-nav],.bottom-nav_bar');
-
-  setText(clearControl, 'Clear Cart');
-  setText(note, 'Shipping and tax calculated at checkout.');
-  setText(continueControl, 'Continue Shopping');
-
-  const visibleItems = () => Array.from(cart.querySelectorAll('[sf-cart-item]')).filter(item => {
-    if (item.classList.contains('sf-cart-empty')) return false;
-    return getComputedStyle(item).display !== 'none';
-  });
-  const isVisible = element => {
-    if (!element) return false;
-    const style = getComputedStyle(element);
-    const rect = element.getBoundingClientRect();
-    return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
-  };
-  const focusableControls = () => Array.from(cart.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),textarea:not([disabled]),[tabindex="0"]'))
-    .filter(isVisible);
-  const cartCount = () => parseInt(document.querySelector('[sf-cart-count]')?.textContent, 10) || 0;
+  const sheet = () => window.CoreSheet || window.ShopFlowSheet || null;
   const isOpen = () => popup.classList.contains('sf-cart-opened');
-  const closeControl = () => cart.querySelector('.cart_header [sf-cart-close]') || popup.querySelector('[sf-cart-close]');
-  const closeCart = () => closeControl()?.click();
+  const sourceClose = () => cart.querySelector('[sf-cart-close]') || popup.querySelector('[sf-cart-close]');
+  const sourceCheckout = () => cart.querySelector('button[sf-checkout],[sf-checkout][data-shopflow-action-2],a[sf-checkout],[sf-checkout]');
+  const text = (root, selector) => (root.querySelector(selector)?.textContent || '').trim();
 
-  /* Storesynk owns the close action; Mayes Core owns the close-control presentation. */
-  const normalizeClose = () => {
-    const close = closeControl();
-    if (!close) return;
-    close.setAttribute('data-sheet-x', '');
-    close.setAttribute('aria-label', 'Close cart');
+  /* Storesynk includes a non-fetched template item in the cart list. Only
+     fetched/product-bound rows are cart state. */
+  const sourceItems = () => Array.from(cart.querySelectorAll('[sf-cart-item]')).filter(item => {
+    if (item.matches('[sf-cart-empty],.sf-cart-empty')) return false;
+    return item.hasAttribute('sf-data-product') ||
+      item.hasAttribute('sf-data-variant') ||
+      !!item.querySelector('[sf-show-title][sf-data-fetched]');
+  });
+
+  const quantityOf = item => {
+    const input = item.querySelector('[sf-change-quantity]');
+    const value = Number(input && (input.value || input.getAttribute('value')));
+    return Number.isFinite(value) && value > 0 ? value : 1;
+  };
+  const cartCount = () => {
+    const quantities = sourceItems().reduce((sum, item) => sum + quantityOf(item), 0);
+    if (quantities) return quantities;
+    const badge = Array.from(document.querySelectorAll('[sf-cart-count]'))
+      .map(node => Number.parseInt(node.textContent, 10))
+      .find(Number.isFinite);
+    return badge || 0;
   };
 
-  /* minus at one does nothing; the X removes the item */
-  cart.addEventListener('click', event => {
-    const dec = event.target.closest('[sf-change-quantity-dec]');
-    const item = dec && dec.closest('[sf-cart-item]');
-    if (!item || !item.classList.contains('is-qty-one')) return;
-    event.preventDefault();
-    event.stopImmediatePropagation();
-  }, true);
-
-  cart.addEventListener('change', event => {
-    const input = event.target.closest && event.target.closest('[sf-change-quantity]');
-    if (input && !(parseInt(input.value, 10) >= 1)) input.value = '1';
-  }, true);
-
-  cart.addEventListener('keydown', event => {
-    if ((event.key === 'Enter' || event.key === ' ') && event.target.matches(KEYS)) {
-      event.preventDefault();
-      event.target.click();
-    }
-  });
-
-  let clearing = false;
-  let clearAttempts = 0;
-  const clearNext = () => {
-    if (!clearing) return;
-    const remove = visibleItems()[0]?.querySelector('[sf-cart-item-remove]');
-    if (!remove || clearAttempts >= 50) {
-      clearing = false;
-      clearAttempts = 0;
-      return;
-    }
-    clearAttempts += 1;
-    remove.click();
-    window.setTimeout(clearNext, 180);
-  };
-  clearControl?.addEventListener('click', event => {
-    event.preventDefault();
-    if (clearing) return;
-    clearing = true;
-    clearAttempts = 0;
-    clearNext();
-  });
-
-  function render() {
-    observer.disconnect();
-    try {
-      normalizeClose();
-      visibleItems().forEach(item => {
-        const input = item.querySelector('[sf-change-quantity]');
-        const one = !!input && Number(input.value || input.getAttribute('value') || 1) <= 1;
-        setClass(item, 'is-qty-one', one);
-        if (input && input.getAttribute('min') !== '1') input.setAttribute('min', '1');
-        const dec = item.querySelector('[sf-change-quantity-dec]');
-        if (dec && dec.getAttribute('aria-disabled') !== String(one)) dec.setAttribute('aria-disabled', String(one));
-      });
-
-      cart.querySelectorAll(KEYS).forEach(control => {
-        if (!control.dataset.sfKb) {
-          control.dataset.sfKb = '1';
-          control.setAttribute('role', 'button');
-          control.setAttribute('tabindex', '0');
-        }
-        if (control.matches('[sf-change-quantity-dec]')) control.setAttribute('aria-label', 'Decrease quantity');
-        if (control.matches('[sf-change-quantity-inc]')) control.setAttribute('aria-label', 'Increase quantity');
-        if (control.matches('[sf-cart-close],[data-cart-continue]')) control.setAttribute('aria-label', 'Close cart');
-        if (control.matches('[sf-cart-item-remove]')) control.setAttribute('aria-label', 'Remove item');
-        if (control.matches('[data-cart-clear]')) control.setAttribute('aria-label', 'Clear cart');
-      });
-
-      const count = cartCount();
-      setText(title, count ? `Your Cart (${count})` : 'Your Cart');
-      const coreTitle = document.querySelector('[data-sheet-host][data-sheet-view="cart"] [data-sheet-head][data-sheet-default] [data-sheet-title]');
-      setText(coreTitle, count ? `Your Cart (${count})` : 'Your Cart');
-      setText(subtotalLabel, count ? `Subtotal (${count} item${count === 1 ? '' : 's'})` : 'Subtotal');
-      setClass(cart, 'is-empty', count === 0);
-    } finally {
-      observer.takeRecords();
-      watch();
-    }
-  }
-
-  let renderTimer = 0;
-  const observer = new MutationObserver(() => {
-    clearTimeout(renderTimer);
-    renderTimer = window.setTimeout(render, 30);
-  });
-  const watch = () => {
-    observer.observe(cart, {
-      subtree: true, childList: true, characterData: true, attributes: true,
-      attributeFilter: ['value', 'style', 'class']
-    });
-    const badge = document.querySelector('[sf-cart-count]');
-    if (badge) observer.observe(badge, {subtree: true, childList: true, characterData: true});
-  };
-  cart.addEventListener('input', () => {
-    clearTimeout(renderTimer);
-    renderTimer = window.setTimeout(render, 30);
-  });
-  cart.addEventListener('change', () => {
-    clearTimeout(renderTimer);
-    renderTimer = window.setTimeout(render, 30);
-  });
-  render();
-
-  /* Render a presentation-only cart view in Core Sheet. Storesynk stays in place as the engine. */
-  let bridging = false;
-  const sheet = () => window.CoreSheet || null;
   const cartSlot = document.createElement('div');
   cartSlot.setAttribute('data-sheet', 'cart');
-  cartSlot.setAttribute('data-sheet-mode', 'bottom');
+  cartSlot.setAttribute('data-sheet-mode', 'drawer');
+  cartSlot.setAttribute('data-sheet-height', 'tall');
   cartSlot.setAttribute('data-sheet-title', 'Your Cart');
   cartSlot.hidden = true;
+
+  const viewBody = document.createElement('div');
+  viewBody.setAttribute('data-sheet-body', '');
+  viewBody.className = 'sf-cart-view__body';
+  const toolbar = document.createElement('div');
+  toolbar.className = 'sf-cart-view__toolbar';
+  const clearButton = document.createElement('button');
+  clearButton.type = 'button';
+  clearButton.className = 'sf-cart-view__clear';
+  clearButton.setAttribute('data-cart-action', 'clear');
+  clearButton.textContent = 'Clear Cart';
+  toolbar.appendChild(clearButton);
+  const itemList = document.createElement('div');
+  itemList.className = 'sf-cart-view__items';
+  itemList.setAttribute('role', 'list');
+  const emptyState = document.createElement('div');
+  emptyState.className = 'sf-cart-view__empty';
+  emptyState.innerHTML = '<h3>Your cart is empty</h3><p>Game day is calling. Find your next favorite look.</p>';
+  viewBody.append(toolbar, itemList, emptyState);
+
+  const viewFooter = document.createElement('div');
+  viewFooter.setAttribute('data-sheet-footer', '');
+  viewFooter.className = 'sf-cart-view__footer';
+  const summary = document.createElement('div');
+  summary.className = 'sf-cart-view__summary';
+  const subtotalLabel = document.createElement('span');
+  subtotalLabel.className = 'sf-cart-view__subtotal-label';
+  const subtotal = document.createElement('strong');
+  subtotal.className = 'sf-cart-view__subtotal';
+  const note = document.createElement('p');
+  note.className = 'sf-cart-view__note';
+  note.textContent = 'Shipping and tax calculated at checkout.';
+  summary.append(subtotalLabel, subtotal, note);
+  const checkoutButton = document.createElement('button');
+  checkoutButton.type = 'button';
+  checkoutButton.className = 'sf-cart-view__checkout';
+  checkoutButton.setAttribute('data-cart-action', 'checkout');
+  checkoutButton.textContent = 'Checkout';
+  const continueButton = document.createElement('button');
+  continueButton.type = 'button';
+  continueButton.className = 'sf-cart-view__continue';
+  continueButton.setAttribute('data-cart-action', 'continue');
+  continueButton.textContent = 'Continue Shopping';
+  viewFooter.append(summary, checkoutButton, continueButton);
+  cartSlot.append(viewBody, viewFooter);
   document.body.appendChild(cartSlot);
 
-  const sourceItems = () => visibleItems();
-  const syncCartView = () => {
-    if (!cartSlot.isConnected) return;
-    cartSlot.innerHTML = '';
+  const makeButton = (action, label, content, index) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = `sf-cart-view__${action}`;
+    button.setAttribute('data-cart-action', action);
+    button.setAttribute('data-cart-item-index', String(index));
+    button.setAttribute('aria-label', label);
+    button.innerHTML = content;
+    return button;
+  };
+
+  const imageUrl = item => {
+    const image = item.querySelector('[sf-show-image]');
+    if (!image) return '';
+    const background = image.style.backgroundImage || '';
+    const match = background.match(/^url\(["']?(.*?)["']?\)$/);
+    return match ? match[1] : '';
+  };
+
+  const itemView = (item, index) => {
+    const title = text(item, '[sf-show-title]') || 'Cart item';
+    const quantity = quantityOf(item);
+    const row = document.createElement('article');
+    row.className = 'sf-cart-view__item';
+    row.setAttribute('role', 'listitem');
+
+    const media = document.createElement('div');
+    media.className = 'sf-cart-view__media';
+    const url = imageUrl(item);
+    if (url) {
+      const image = document.createElement('img');
+      image.src = url;
+      image.alt = title;
+      image.loading = 'lazy';
+      media.appendChild(image);
+    }
+
+    const info = document.createElement('div');
+    info.className = 'sf-cart-view__info';
+    const name = document.createElement('h3');
+    name.className = 'sf-cart-view__name';
+    name.textContent = title;
+    info.appendChild(name);
+
+    const detailSelectors = [
+      '[sf-show-options]',
+      '[sf-show-product-note]',
+      '[sf-show-subscription-title]',
+      '[sf-show-product-discount-title]',
+      '[sf-show-discount-code]'
+    ];
+    const details = detailSelectors.map(selector => text(item, selector)).filter(Boolean);
+    if (details.length) {
+      const meta = document.createElement('p');
+      meta.className = 'sf-cart-view__meta';
+      meta.textContent = details.join(' · ');
+      info.appendChild(meta);
+    }
+
+    const prices = document.createElement('div');
+    prices.className = 'sf-cart-view__prices';
+    const price = document.createElement('span');
+    price.className = 'sf-cart-view__price';
+    price.textContent = text(item, '[sf-show-price]');
+    prices.appendChild(price);
+    const was = text(item, '[sf-show-prediscount-price]');
+    if (was && was !== price.textContent) {
+      const previous = document.createElement('span');
+      previous.className = 'sf-cart-view__price-was';
+      previous.textContent = was;
+      prices.appendChild(previous);
+    }
+    info.appendChild(prices);
+
+    const controls = document.createElement('div');
+    controls.className = 'sf-cart-view__controls';
+    const stepper = document.createElement('div');
+    stepper.className = 'sf-cart-view__stepper';
+    stepper.setAttribute('aria-label', `Quantity for ${title}`);
+    const minus = makeButton('decrease', `Decrease quantity for ${title}`, '<span aria-hidden="true">−</span>', index);
+    minus.disabled = quantity <= 1;
+    const amount = document.createElement('span');
+    amount.className = 'sf-cart-view__quantity';
+    amount.setAttribute('aria-live', 'polite');
+    amount.textContent = String(quantity);
+    const plus = makeButton('increase', `Increase quantity for ${title}`, '<span aria-hidden="true">+</span>', index);
+    stepper.append(minus, amount, plus);
+    controls.appendChild(stepper);
+
+    const remove = makeButton('remove', `Remove ${title} from cart`, '<span aria-hidden="true">×</span>', index);
+    row.append(media, info, remove, controls);
+    return row;
+  };
+
+  let pendingFocus = null;
+  const restoreActionFocus = () => {
+    if (!pendingFocus || sheet()?.current?.() !== cartSlot) return;
+    const {action, index} = pendingFocus;
+    pendingFocus = null;
+    const selector = index == null
+      ? `[data-cart-action="${action}"]`
+      : `[data-cart-action="${action}"][data-cart-item-index="${index}"]`;
+    const root = sheet()?.host?.() || cartSlot;
+    const target = root.querySelector(selector) || (clearButton.hidden ? continueButton : clearButton);
+    target?.focus({preventScroll: true});
+  };
+
+  const renderView = () => {
+    const activeControl = document.activeElement?.closest?.('[data-cart-action]');
+    if (!pendingFocus && activeControl && (viewBody.contains(activeControl) || viewFooter.contains(activeControl))) {
+      const activeIndex = activeControl.getAttribute('data-cart-item-index');
+      pendingFocus = {
+        action: activeControl.getAttribute('data-cart-action'),
+        index: activeIndex == null ? null : Number(activeIndex)
+      };
+    }
+    const items = sourceItems();
+    const count = cartCount();
+    const title = count ? `Your Cart (${count})` : 'Your Cart';
+    cartSlot.setAttribute('data-sheet-title', title);
+    const coreTitle = sheet()?.current?.() === cartSlot
+      ? sheet().host()?.querySelector('[data-sheet-head][data-sheet-default] [data-sheet-title]')
+      : null;
+    if (coreTitle && coreTitle.textContent !== title) coreTitle.textContent = title;
+
+    itemList.replaceChildren(...items.map(itemView));
+    toolbar.hidden = items.length === 0;
+    itemList.hidden = items.length === 0;
+    emptyState.hidden = items.length !== 0;
+    summary.hidden = items.length === 0;
+    checkoutButton.hidden = items.length === 0;
+    subtotalLabel.textContent = count
+      ? `Subtotal (${count} item${count === 1 ? '' : 's'})`
+      : 'Subtotal';
+    subtotal.textContent = text(cart, '[sf-cart-subtotal]') || '$0.00';
+    window.requestAnimationFrame(restoreActionFocus);
+  };
+
+  const sourceAction = (index, selector) => sourceItems()[index]?.querySelector(selector);
+  const scheduleRender = () => {
+    window.clearTimeout(scheduleRender.timer);
+    scheduleRender.timer = window.setTimeout(renderView, 40);
+  };
+
+  let clearing = false;
+  let clearingItem = null;
+  let clearFallback = 0;
+  const finishClearing = () => {
+    clearing = false;
+    clearingItem = null;
+    window.clearTimeout(clearFallback);
+  };
+  const clearNext = () => {
+    if (!clearing) return;
     const items = sourceItems();
     if (!items.length) {
-      const empty = cart.querySelector('[sf-cart-empty]');
-      if (empty) cartSlot.appendChild(empty.cloneNode(true));
+      finishClearing();
+      renderView();
       return;
     }
-
-    const list = document.createElement('div');
-    list.setAttribute('data-cart-view-list', '');
-    items.forEach((source, index) => {
-      const item = source.cloneNode(true);
-      item.setAttribute('data-cart-view-item', String(index));
-      item.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
-      list.appendChild(item);
-    });
-    cartSlot.appendChild(list);
-
-    const summary = cart.querySelector('.cart_summary');
-    if (summary) {
-      const viewSummary = summary.cloneNode(true);
-      viewSummary.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
-      cartSlot.appendChild(viewSummary);
+    if (clearingItem && items.includes(clearingItem)) return;
+    clearingItem = items[0];
+    const remove = clearingItem.querySelector('[sf-cart-item-remove]');
+    if (!remove) {
+      finishClearing();
+      return;
     }
+    remove.click();
+    window.clearTimeout(clearFallback);
+    clearFallback = window.setTimeout(() => {
+      clearingItem = null;
+      clearNext();
+    }, 1500);
   };
 
-  const sourceControl = (viewControl, selector) => {
-    const viewItem = viewControl.closest('[data-cart-view-item]');
-    if (!viewItem) return null;
-    const source = sourceItems()[Number(viewItem.getAttribute('data-cart-view-item'))];
-    return source && source.querySelector(selector);
-  };
+  const handleViewClick = event => {
+    const control = event.target.closest('[data-cart-action]');
+    if (!control) return;
+    const action = control.getAttribute('data-cart-action');
+    const indexValue = control.getAttribute('data-cart-item-index');
+    const index = indexValue == null ? null : Number(indexValue);
 
-  cartSlot.addEventListener('click', event => {
-    const dec = event.target.closest('[sf-change-quantity-dec]');
-    const inc = event.target.closest('[sf-change-quantity-inc]');
-    const remove = event.target.closest('[sf-cart-item-remove]');
-    const checkout = event.target.closest('[sf-checkout],.button');
-    const clear = event.target.closest('[data-cart-clear]');
-    const cont = event.target.closest('[data-cart-continue]');
-
-    if (dec || inc || remove) {
-      event.preventDefault();
-      const selector = dec ? '[sf-change-quantity-dec]' : inc ? '[sf-change-quantity-inc]' : '[sf-cart-item-remove]';
-      sourceControl(dec || inc || remove, selector)?.click();
-      window.setTimeout(syncCartView, 80);
-      return;
-    }
-    if (clear) {
-      event.preventDefault();
-      clearControl?.click();
-      window.setTimeout(syncCartView, 220);
-      return;
-    }
-    if (cont) {
-      event.preventDefault();
+    if (action === 'continue') {
       sheet()?.close();
       return;
     }
-    if (checkout) {
-      const sourceCheckout = cart.querySelector('[sf-checkout]');
-      if (sourceCheckout) {
-        event.preventDefault();
-        sourceCheckout.click();
-      }
+    if (action === 'checkout') {
+      sourceCheckout()?.click();
+      return;
     }
-  });
+    if (action === 'clear') {
+      if (!clearing) {
+        pendingFocus = {action: 'continue', index: null};
+        clearing = true;
+        clearingItem = null;
+        clearNext();
+      }
+      return;
+    }
+
+    const selectors = {
+      decrease: '[sf-change-quantity-dec]',
+      increase: '[sf-change-quantity-inc]',
+      remove: '[sf-cart-item-remove]'
+    };
+    const source = selectors[action] && sourceAction(index, selectors[action]);
+    if (!source) return;
+    pendingFocus = {action, index};
+    source.click();
+    scheduleRender();
+  };
+  viewBody.addEventListener('click', handleViewClick);
+  viewFooter.addEventListener('click', handleViewClick);
+
+  let sheetClosing = false;
+  let openReturnFocus = null;
+  const releaseSheetClosing = () => {
+    window.setTimeout(() => {
+      sheetClosing = false;
+      syncOpenState();
+    }, 320);
+  };
+  document.addEventListener('click', event => {
+    const opener = event.target.closest('[sf-cart-open]');
+    if (opener) openReturnFocus = opener;
+  }, true);
 
   const openInSheet = () => {
-    if (bridging || !isOpen() || !sheet()) return;
-    if (sheet().current && sheet().current() === cartSlot) return;
-    bridging = true;
+    const api = sheet();
+    if (!api || !isOpen()) return;
     popup.classList.add('is-core-sheet-mounted');
-    syncCartView();
-    sheet().open(cartSlot, {mode:'bottom', title:cartCount() ? `Your Cart (${cartCount()})` : 'Your Cart'});
-    window.setTimeout(() => { bridging = false; }, 0);
+    renderView();
+    if (api.current?.() !== cartSlot) {
+      api.open(cartSlot, {
+        mode: 'drawer',
+        title: cartSlot.getAttribute('data-sheet-title'),
+        returnFocus: openReturnFocus || document.activeElement
+      });
+    }
   };
-  const closeStoreCart = () => {
-    if (!isOpen()) return;
-    bridging = true;
-    closeCart();
-    window.setTimeout(() => { bridging = false; }, 0);
-  };
-  const syncOpen = () => {
-    if (bridging) return;
+
+  const syncOpenState = () => {
+    const api = sheet();
     if (isOpen()) {
+      if (sheetClosing) return;
       openInSheet();
-      if (sheet() && sheet().current && sheet().current() === cartSlot) syncCartView();
-    } else if (sheet() && sheet().current && sheet().current() === cartSlot) {
-      sheet().close(null, {noFocus:true});
+      return;
+    }
+    popup.classList.remove('is-core-sheet-mounted');
+    if (api?.current?.() === cartSlot && !sheetClosing) {
+      sheetClosing = true;
+      api.close(null, {noFocus: true});
+      releaseSheetClosing();
     }
   };
-  new MutationObserver(syncOpen).observe(popup, {attributes:true, attributeFilter:['class']});
-  new MutationObserver(() => {
-    if (sheet() && sheet().current && sheet().current() === cartSlot) {
-      clearTimeout(renderTimer);
-      renderTimer = window.setTimeout(syncCartView, 40);
+
+  const popupObserver = new MutationObserver(syncOpenState);
+  popupObserver.observe(popup, {attributes: true, attributeFilter: ['class']});
+
+  const cartObserver = new MutationObserver(() => {
+    if (clearing) {
+      const items = sourceItems();
+      if (!clearingItem || !items.includes(clearingItem)) {
+        clearingItem = null;
+        window.clearTimeout(clearFallback);
+        window.setTimeout(clearNext, 40);
+      }
     }
-  }).observe(cart, {subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['value','class','style']});
+    scheduleRender();
+  });
+  cartObserver.observe(cart, {
+    subtree: true,
+    childList: true,
+    characterData: true,
+    attributes: true,
+    attributeFilter: ['value', 'style', 'class', 'sf-data-fetched']
+  });
+  document.querySelectorAll('[sf-cart-count]').forEach(badge => {
+    cartObserver.observe(badge, {subtree: true, childList: true, characterData: true});
+  });
+  cart.addEventListener('input', scheduleRender);
+  cart.addEventListener('change', scheduleRender);
 
   cartSlot.addEventListener('sheet:close', () => {
-    popup.classList.remove('is-core-sheet-mounted');
-    if (!bridging) closeStoreCart();
+    if (isOpen() && !sheetClosing) {
+      sheetClosing = true;
+      sourceClose()?.click();
+      releaseSheetClosing();
+    }
   });
-  syncOpen();
+
+  renderView();
+  syncOpenState();
 })();
