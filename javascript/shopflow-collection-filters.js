@@ -228,30 +228,24 @@
       setClass(empty, 'is-active', !shown && (list.children.length > 0 || root.classList.contains('has-active-filters')));
     };
 
-    // Mobile drawer
-    // Filtering owns the close action; Mayes Core owns the close-control presentation.
-    qa(root, '.collection-filters-panel [data-filters-close]').forEach(b => {
-      if (!b.classList.contains('collection-filters-overlay')) b.setAttribute('data-sheet-x', '');
-    });
+    // Mobile drawer: Core Sheet owns presentation; this module owns filter behavior/content.
+    const panel = q(root, '.collection-filters-panel');
+    if (panel) {
+      panel.setAttribute('data-sheet-content', 'filters');
+      panel.setAttribute('data-sheet-mode', 'bottom');
+      panel.setAttribute('data-sheet-title', 'Filter & Sort');
+    }
     const open = () => {
-      root.classList.add('is-open');
-      document.documentElement.classList.add('filters-open');
+      if (!mqPhone.matches || !panel || !window.CoreSheet) return;
+      window.CoreSheet.open(panel, {returnFocus:openBtn, mode:'bottom', title:'Filter & Sort'});
       if (openBtn) openBtn.setAttribute('aria-expanded', 'true');
-      const first = q(root, '.collection-filters-panel [data-filters-close], .collection-filters-panel [data-filter-toggle]');
-      if (first) first.focus();
     };
     const close = () => {
-      if (!root.classList.contains('is-open')) return;
-      root.classList.remove('is-open');
-      document.documentElement.classList.remove('filters-open');
-      if (openBtn) { openBtn.setAttribute('aria-expanded', 'false'); openBtn.focus(); }
+      if (window.CoreSheet && window.CoreSheet.current && window.CoreSheet.current() === panel) window.CoreSheet.close();
+      if (openBtn) openBtn.setAttribute('aria-expanded', 'false');
     };
-    if (openBtn) { asButton(openBtn); openBtn.addEventListener('click', e => { e.preventDefault(); open(); }); }
-    qa(root, '[data-filters-close]').forEach(b => {
-      if (!b.classList.contains('collection-filters-overlay')) asButton(b);
-      b.addEventListener('click', e => { e.preventDefault(); close(); });
-    });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+    if (openBtn) { asButton(openBtn); openBtn.addEventListener('click', e => { if (!mqPhone.matches) return; e.preventDefault(); open(); }); }
+    if (panel) panel.addEventListener('sheet:close', () => { if (openBtn) openBtn.setAttribute('aria-expanded', 'false'); });
     matchMedia('(min-width: 992px)').addEventListener('change', e => { if (e.matches) close(); });
 
     // Sort chips (phones): mirror the native <select sf-sort>; choosing a chip sets the select and fires its change event
@@ -282,47 +276,6 @@
       qa(chips, '.sort-chip').forEach(b => setAttr(b, 'aria-checked', String(b.dataset.value === sortSel.value)));
     }
     syncSort();
-
-    // Bottom sheet: swipe down on the header closes it; Tab stays inside while open
-    const panel = q(root, '.collection-filters-panel');
-    if (panel) {
-      panel.setAttribute('aria-modal', 'true');
-      // swipe down on the header closes the sheet (self-contained: needs nothing from the Sheet engine)
-      const head = q(panel, '.collection-filters-head');
-      let sy = 0, dy = 0, t0 = 0, drag = false, pid = null;
-      const canSwipe = () => mqPhone.matches && root.classList.contains('is-open');
-      panel.addEventListener('pointerdown', e => {
-        if (!canSwipe() || !head || !head.contains(e.target) || e.target.closest('a, button, [role="button"], input, select')) return;
-        if (e.pointerType === 'mouse' && e.button !== 0) return;
-        sy = e.clientY; dy = 0; t0 = e.timeStamp; drag = true; pid = e.pointerId;
-        try { panel.setPointerCapture(pid); } catch (x) {}
-      });
-      panel.addEventListener('pointermove', e => {
-        if (!drag || e.pointerId !== pid) return;
-        dy = Math.max(0, e.clientY - sy);
-        if (dy > 4) { panel.classList.add('is-dragging'); panel.style.transform = `translateY(${dy}px)`; }
-      });
-      const endDrag = e => {
-        if (!drag || e.pointerId !== pid) return;
-        drag = false;
-        try { panel.releasePointerCapture(pid); } catch (x) {}
-        const v = dy / Math.max(1, e.timeStamp - t0);
-        panel.classList.remove('is-dragging');
-        if (dy > Math.min(120, (panel.offsetHeight || 0) * 0.25) || (dy > 40 && v > 0.5)) {
-          panel.style.transform = 'translateY(100%)'; close();
-          setTimeout(() => { panel.style.transform = ''; }, 340);
-        } else if (dy) panel.style.transform = '';
-      };
-      panel.addEventListener('pointerup', endDrag); panel.addEventListener('pointercancel', endDrag);
-      panel.addEventListener('keydown', e => {
-        if (e.key !== 'Tab' || !root.classList.contains('is-open')) return;
-        const f = qa(panel, 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])').filter(el => el.getClientRects().length > 0);
-        if (!f.length) return;
-        const a = f[0], z = f[f.length - 1];
-        if (e.shiftKey && document.activeElement === a) { e.preventDefault(); z.focus(); }
-        else if (!e.shiftKey && document.activeElement === z) { e.preventDefault(); a.focus(); }
-      });
-    }
 
     // Observe Storesynk's changes only; ignore the ones this script makes itself.
     const OBS = { subtree: true, childList: true, attributes: true, attributeFilter: ['class'] };
