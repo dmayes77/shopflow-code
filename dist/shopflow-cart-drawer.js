@@ -1,4 +1,4 @@
-/* ShopFlow – Cart content adapter v1.6.0
+/* ShopFlow – Cart content adapter v1.7.0
  * Works on top of Storesynk's cart ([sf-cart]); Storesynk remains responsible
  * for product, quantity, price, checkout and persistence.
  *
@@ -165,16 +165,37 @@
   });
   render();
 
-  /* Core Sheet owns the cart presentation; Storesynk continues to own cart state/actions. */
-  let bridging = false;
+  /* Adapt the styled Storesynk cart content to the existing Core Sheet contract. */
+  let bridging = false, cartMarker = null;
   const sheet = () => window.CoreSheet || null;
+  const cartSlot = document.createElement('div');
+  cartSlot.setAttribute('data-sheet', 'cart');
+  cartSlot.setAttribute('data-sheet-mode', 'bottom');
+  cartSlot.setAttribute('data-sheet-title', 'Your Cart');
+  cartSlot.hidden = true;
+  document.body.appendChild(cartSlot);
+
+  const mountCart = () => {
+    if (cart.parentNode === cartSlot) return;
+    cartMarker = document.createComment('cart-home');
+    cart.parentNode.insertBefore(cartMarker, cart);
+    cartSlot.appendChild(cart);
+  };
+  const restoreCart = () => {
+    if (!cartMarker || !cartMarker.parentNode) return;
+    cartMarker.parentNode.insertBefore(cart, cartMarker);
+    cartMarker.parentNode.removeChild(cartMarker);
+    cartMarker = null;
+    popup.classList.remove('is-core-sheet-mounted');
+  };
   const openInSheet = () => {
     if (bridging || !isOpen() || !sheet()) return;
     const active = sheet().current && sheet().current();
-    if (active === cart) return;
+    if (active === cartSlot) return;
     bridging = true;
     popup.classList.add('is-core-sheet-mounted');
-    sheet().open(cart, {mode:'drawer', title:cartCount() ? `Your Cart (${cartCount()})` : 'Your Cart'});
+    mountCart();
+    sheet().open(cartSlot, {mode:'bottom', title:cartCount() ? `Your Cart (${cartCount()})` : 'Your Cart'});
     window.setTimeout(() => { bridging = false; }, 0);
   };
   const closeStoreCart = () => {
@@ -184,17 +205,16 @@
     window.setTimeout(() => { bridging = false; }, 0);
   };
 
-  /* Storesynk's popup class is the source of truth for cart open state. */
   const syncOpen = () => {
     if (bridging) return;
     if (isOpen()) openInSheet();
-    else if (sheet() && sheet().current && sheet().current() === cart) sheet().close(null, {noFocus:true});
+    else if (sheet() && sheet().current && sheet().current() === cartSlot) sheet().close(null, {noFocus:true});
   };
   new MutationObserver(syncOpen).observe(popup, {attributes:true, attributeFilter:['class']});
 
-  cart.addEventListener('sheet:close', () => {
-    popup.classList.remove('is-core-sheet-mounted');
+  cartSlot.addEventListener('sheet:close', () => {
     if (!bridging) closeStoreCart();
+    window.setTimeout(restoreCart, 300);
   });
   syncOpen();
 })();

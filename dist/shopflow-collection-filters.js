@@ -1,4 +1,4 @@
-/* ShopFlow – Collection Filters v1.2.0
+/* ShopFlow – Collection Filters v1.4.0
  * Behavior layer for the ShopFlow Collection Filters component (Storesynk-powered).
  * v1.2.0: tag sections. A filter group marked data-filter-sections splits its chips into labelled sections from Shopify tag
  *         prefixes ("Color: Orange" → section "Color", chip "Orange"). The prefix is never shown to shoppers: chips show only
@@ -228,24 +228,43 @@
       setClass(empty, 'is-active', !shown && (list.children.length > 0 || root.classList.contains('has-active-filters')));
     };
 
-    // Mobile drawer: Core Sheet owns presentation; this module owns filter behavior/content.
+    // Mobile drawer: adapt the filter body to the existing Core Sheet contract.
     const panel = q(root, '.collection-filters-panel');
-    if (panel) {
-      panel.setAttribute('data-sheet-content', 'filters');
-      panel.setAttribute('data-sheet-mode', 'bottom');
-      panel.setAttribute('data-sheet-title', 'Filter & Sort');
-    }
+    const filterBody = panel && q(panel, '.collection-filters-body');
+    const filterSlot = document.createElement('div');
+    filterSlot.setAttribute('data-sheet', 'filters');
+    filterSlot.setAttribute('data-sheet-mode', 'bottom');
+    filterSlot.setAttribute('data-sheet-title', 'Filter & Sort');
+    filterSlot.hidden = true;
+    document.body.appendChild(filterSlot);
+    let filterMarker = null;
+    const mountFilterBody = () => {
+      if (!filterBody || filterBody.parentNode === filterSlot) return;
+      filterMarker = document.createComment('filters-home');
+      filterBody.parentNode.insertBefore(filterMarker, filterBody);
+      filterSlot.appendChild(filterBody);
+    };
+    const restoreFilterBody = () => {
+      if (!filterMarker || !filterMarker.parentNode || !filterBody) return;
+      filterMarker.parentNode.insertBefore(filterBody, filterMarker);
+      filterMarker.parentNode.removeChild(filterMarker);
+      filterMarker = null;
+    };
     const open = () => {
-      if (!mqPhone.matches || !panel || !window.CoreSheet) return;
-      window.CoreSheet.open(panel, {returnFocus:openBtn, mode:'bottom', title:'Filter & Sort'});
+      if (!mqPhone.matches || !filterBody || !window.CoreSheet) return;
+      mountFilterBody();
+      window.CoreSheet.open(filterSlot, {returnFocus:openBtn, mode:'bottom', title:'Filter & Sort'});
       if (openBtn) openBtn.setAttribute('aria-expanded', 'true');
     };
     const close = () => {
-      if (window.CoreSheet && window.CoreSheet.current && window.CoreSheet.current() === panel) window.CoreSheet.close();
+      if (window.CoreSheet && window.CoreSheet.current && window.CoreSheet.current() === filterSlot) window.CoreSheet.close();
       if (openBtn) openBtn.setAttribute('aria-expanded', 'false');
     };
     if (openBtn) { asButton(openBtn); openBtn.addEventListener('click', e => { if (!mqPhone.matches) return; e.preventDefault(); open(); }); }
-    if (panel) panel.addEventListener('sheet:close', () => { if (openBtn) openBtn.setAttribute('aria-expanded', 'false'); });
+    filterSlot.addEventListener('sheet:close', () => {
+      if (openBtn) openBtn.setAttribute('aria-expanded', 'false');
+      window.setTimeout(restoreFilterBody, 300);
+    });
     matchMedia('(min-width: 992px)').addEventListener('change', e => { if (e.matches) close(); });
 
     // Sort chips (phones): mirror the native <select sf-sort>; choosing a chip sets the select and fires its change event
