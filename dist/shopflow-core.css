@@ -1,9 +1,19 @@
 /* ShopFlow – shopflow-core.css – built from: shopflow-page-stability.css shopflow-announcement.css core-bottom-nav.css core-consent.css shopflow-brand-bar.css shopflow-new-view.css shopflow-quick-add.css shopflow-size-labels.css shopflow-cart-page-bg.css */
 
-/* ShopFlow – Page stability v1.0.0 – always reserve the scrollbar's space, so the page doesn't shift sideways when it grows
-   past one screen (opening an accordion) or when a drawer locks scrolling. No effect with overlay scrollbars (phones, default macOS).
-   Core 2.0 upstream candidate. Installed in Page Shell › embed "ShopFlow Core Code" (section 0). */
-html{scrollbar-gutter:stable}
+/* ShopFlow – Page stability v1.1.0
+ * Reserve scrollbar space so vertical scroll locking does not shift layout,
+ * and suppress root-level horizontal overscroll when the document itself
+ * has no horizontal overflow. Horizontal component scrollers remain unaffected.
+ * Core 2.0 upstream candidate.
+ */
+html{
+  scrollbar-gutter:stable;
+  overscroll-behavior-x:none;
+}
+body{
+  overscroll-behavior-x:none;
+}
+
 
 /* ShopFlow – Announcement bar + navbar stacking v1.0.0. Core 2.0 upstream candidate.
    The announcement bar (Page Shell › CMS / Announcement Bar, [data-announcement]) sits in the page flow above the header.
@@ -12,6 +22,7 @@ html{scrollbar-gutter:stable}
    scrolled away the navbar stays pinned at top:0. No bar (empty Announcement) = offset 0, nothing changes. */
 .navbar-compact{top:var(--sf-announcement-offset,0px)}
 [data-announcement]{position:relative;z-index:1001}
+
 
 /* Core – Bottom Nav v1.0.0 – runtime states for Navigation / Bottom Nav (base styles live on the Webflow bottom-nav_* classes). */
 .bottom-nav_tab{-webkit-tap-highlight-color:transparent;transition:color .15s ease}
@@ -23,6 +34,7 @@ html{scrollbar-gutter:stable}
 .bottom-nav_tab:active .bottom-nav_icon{transform:scale(.92)}
 .bottom-nav_icon{transition:transform .12s ease}
 @media (prefers-reduced-motion:reduce){.bottom-nav_tab,.bottom-nav_indicator,.bottom-nav_icon{transition:none}}
+
 
 /* Core – Consent v1.0.0 – Site Settings sheet + first-visit cookie notice (content lives in the Sheet engine's drawer). */
 [data-settings-section]{display:flex;flex-direction:column;gap:.75rem;padding:.25rem 0 1rem}
@@ -47,6 +59,7 @@ html{scrollbar-gutter:stable}
 html [data-settings-open]{display:none;align-items:center;justify-content:center;margin:0;padding:0;border:0;background:none;cursor:pointer}
 @media (max-width:991px){html.has-bottom-nav [data-settings-open]{display:flex}}
 @media (prefers-reduced-motion:reduce){[data-consent-switch],[data-consent-switch]::after{transition:none}}
+
 
 /* ShopFlow – Brand Bar v1.1.0 (logo pinned left, account pinned right) – on phones/tablets (≤991px) with a bottom nav, the storefront navbar becomes a brand bar:
    logo + Shopify account. Home, Shop, New, Cart and More live in the bottom nav.
@@ -84,9 +97,29 @@ html [data-settings-open]{display:none;align-items:center;justify-content:center
 [data-more-link] > [aria-hidden]{flex:none;color:var(--_theme---text--brand,#f60);font-size:1.25rem}
 [data-sheet="site-settings"] [data-settings-section="privacy"]{padding-top:1.25rem}
 
-/* ShopFlow – New discovery view v1.0.0
+
+/* ShopFlow – New discovery view v1.1.0
  * Native Webflow content is revealed only by the URL-derived is-new-view state.
  * Products remain the existing Storesynk/Shopify collection list below it. */
+
+/* Storefront shell invariant.
+ * New Arrivals is a state of /shop-all, not a separate page. Keep shared
+ * navigation anchored to the viewport exactly as it is in every other view. */
+html.is-new-view .navbar-compact{
+  position:fixed!important;
+  left:0!important;
+  right:0!important;
+  top:var(--sf-announcement-offset,0px)!important;
+  z-index:1000!important;
+}
+html.is-new-view .bottom-nav_bar{
+  position:fixed!important;
+  left:.5rem!important;
+  right:.5rem!important;
+  bottom:.5rem!important;
+  z-index:1000!important;
+}
+
 [data-new-discovery]{display:none}
 html.is-new-view [data-new-discovery]{display:block}
 html.is-new-view .shop-all-hero{display:none!important}
@@ -139,6 +172,7 @@ html.is-new-view .shop-all-catalog{padding-top:0}
   .new-discovery_category-media{transition:none}
 }
 
+
 /* ShopFlow – Quick Add v1.1.0 – size picker content, built on ShopFlow Sheet ([data-sheet]). Core 2.0 tokens.
    Installed in Page Shell › embed "ShopFlow Core Code" (section 2). */
 [data-quick-add] [data-sheet-body]{display:grid;grid-template-columns:6.5rem 1fr;grid-template-areas:"img info" "opts opts";column-gap:1rem;row-gap:1.25rem;align-items:start}
@@ -165,6 +199,7 @@ html.is-new-view .shop-all-catalog{padding-top:0}
 [data-quick-add] [data-sheet-footer] .button{display:flex;width:100%;justify-content:center}
 [data-quick-add] [data-sheet-footer] .button.is-waiting{opacity:.55}
 
+
 /* ShopFlow – Size Labels v1.0.0 – universal rounded-square size buttons (S / M / L…). Core 2.0 tokens (Radius/small).
    Installed in Page Shell › ShopFlow Core (dist/shopflow-core.css). data-short is set by shopflow-size-labels.js;
    sizes without a short form (e.g. "One size") keep their full text. */
@@ -172,7 +207,9 @@ html.is-new-view .shop-all-catalog{padding-top:0}
 .pill-button[data-short] > *{display:none}
 .pill-button[data-short]::after{content:attr(data-short);font-size:1rem;font-weight:600;letter-spacing:.01em}
 
+
 /* ShopFlow – Cart Page Background v1.0.0 – installed in Page Shell › embed "ShopFlow Core Code" (section 3).
    Android Chrome paints the page background into the strip behind the gesture bar, below fixed elements.
    The body uses Core 2.0 bg-light (cream), so while the cart is open we switch it to the theme background (white). */
 html:has([sf-cart-popup].sf-cart-opened),html:has([sf-cart-popup].sf-cart-opened) body{background-color:var(--_theme---background--primary,#fff)!important}
+
