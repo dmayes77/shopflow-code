@@ -1,4 +1,4 @@
-/* ShopFlow – Cart adapter v2.0.0
+/* ShopFlow – Cart adapter v2.0.3
  * Storesynk owns cart state and commerce actions. ShopFlow reads that state,
  * renders an independent Cart view, and proxies actions back to Storesynk.
  * Core Sheet remains the only visible drawer shell.
@@ -200,6 +200,7 @@
     target?.focus({preventScroll: true});
   };
 
+  let lastRenderSignature = '';
   const renderView = () => {
     const activeControl = document.activeElement?.closest?.('[data-cart-action]');
     if (!pendingFocus && activeControl && (viewBody.contains(activeControl) || viewFooter.contains(activeControl))) {
@@ -212,6 +213,30 @@
     const items = sourceItems();
     const count = cartCount();
     const title = count ? `Your Cart (${count})` : 'Your Cart';
+    /* Storesynk also watches DOM mutations. Rebuilding an unchanged mirror can
+       otherwise create a feedback loop: ShopFlow view mutation → Storesynk
+       source mutation → ShopFlow view mutation. Only write when cart state
+       that the visible view consumes has actually changed. */
+    const signature = JSON.stringify({
+      count,
+      subtotal: text(cart, '[sf-cart-subtotal]'),
+      items: items.map(item => ({
+        product: item.getAttribute('sf-data-product') || '',
+        variant: item.getAttribute('sf-data-variant') || '',
+        quantity: quantityOf(item),
+        title: text(item, '[sf-show-title]'),
+        options: text(item, '[sf-show-options]'),
+        note: text(item, '[sf-show-product-note]'),
+        subscription: text(item, '[sf-show-subscription-title]'),
+        discount: text(item, '[sf-show-product-discount-title]'),
+        code: text(item, '[sf-show-discount-code]'),
+        price: text(item, '[sf-show-price]'),
+        was: text(item, '[sf-show-prediscount-price]'),
+        image: imageUrl(item)
+      }))
+    });
+    if (signature === lastRenderSignature) return;
+    lastRenderSignature = signature;
     cartSlot.setAttribute('data-sheet-title', title);
     const coreTitle = sheet()?.current?.() === cartSlot
       ? sheet().host()?.querySelector('[data-sheet-head][data-sheet-default] [data-sheet-title]')
@@ -235,6 +260,11 @@
   const scheduleRender = () => {
     window.clearTimeout(scheduleRender.timer);
     scheduleRender.timer = window.setTimeout(renderView, 40);
+  };
+  const syncAfterAction = () => {
+    scheduleRender();
+    window.setTimeout(renderView, 250);
+    window.setTimeout(renderView, 800);
   };
 
   let clearing = false;
@@ -261,6 +291,7 @@
       return;
     }
     remove.click();
+    syncAfterAction();
     window.clearTimeout(clearFallback);
     clearFallback = window.setTimeout(() => {
       clearingItem = null;
@@ -302,7 +333,7 @@
     if (!source) return;
     pendingFocus = {action, index};
     source.click();
-    scheduleRender();
+    syncAfterAction();
   };
   viewBody.addEventListener('click', handleViewClick);
   viewFooter.addEventListener('click', handleViewClick);
@@ -325,6 +356,8 @@
     if (!api || !isOpen()) return;
     popup.classList.add('is-core-sheet-mounted');
     renderView();
+    window.setTimeout(renderView, 250);
+    window.setTimeout(renderView, 800);
     if (api.current?.() !== cartSlot) {
       api.open(cartSlot, {
         mode: 'drawer',
@@ -349,30 +382,6 @@
     }
   };
 
-  const popupObserver = new MutationObserver(syncOpenState);
-  popupObserver.observe(popup, {attributes: true, attributeFilter: ['class']});
-
-  const cartObserver = new MutationObserver(() => {
-    if (clearing) {
-      const items = sourceItems();
-      if (!clearingItem || !items.includes(clearingItem)) {
-        clearingItem = null;
-        window.clearTimeout(clearFallback);
-        window.setTimeout(clearNext, 40);
-      }
-    }
-    scheduleRender();
-  });
-  cartObserver.observe(cart, {
-    subtree: true,
-    childList: true,
-    characterData: true,
-    attributes: true,
-    attributeFilter: ['value', 'style', 'class', 'sf-data-fetched']
-  });
-  document.querySelectorAll('[sf-cart-count]').forEach(badge => {
-    cartObserver.observe(badge, {subtree: true, childList: true, characterData: true});
-  });
   cart.addEventListener('input', scheduleRender);
   cart.addEventListener('change', scheduleRender);
 
@@ -385,5 +394,13 @@
   });
 
   renderView();
-  syncOpenState();
+  let lastPopupOpen = isOpen();
+  if (lastPopupOpen) openInSheet();
+  else popup.classList.remove('is-core-sheet-mounted');
+  window.setInterval(() => {
+    const next = isOpen();
+    if (next === lastPopupOpen) return;
+    lastPopupOpen = next;
+    syncOpenState();
+  }, 120);
 })();
