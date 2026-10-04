@@ -185,10 +185,10 @@
 
 
   var VIEW_CONTENT = {
-    all:  {eyebrow:'SHOP ALL', title:'Your Next Favorite Look', copy:'Game day looks, everyday favorites, and all the pieces that make Orange You Glad unique.'},
-    new:  {eyebrow:'NEW ARRIVALS', title:'Fresh Styles Just In', copy:'The latest Orange You Glad arrivals, ready for game day and every day.'},
-    best: {eyebrow:'BEST SELLERS', title:'Styles Everyone Loves', copy:'Customer favorites and standout styles worth another look.'},
-    sale: {eyebrow:'ON SALE', title:'Timeless Pieces for Less', copy:'Styles you love at an exceptional value.'}
+    all:  {eyebrow:'SHOP ALL', title:'Your Next Favorite Look', copy:'Game day looks, everyday favorites, and all the pieces that make Orange You Glad unique.', cta:'Shop All →'},
+    new:  {eyebrow:'NEW ARRIVALS', title:'Fresh Styles Just In', copy:'The latest Orange You Glad arrivals, ready for game day and every day.', cta:'Shop New →'},
+    best: {eyebrow:'BEST SELLERS', title:'Styles Everyone Loves', copy:'Customer favorites and standout styles worth another look.', cta:'Shop Best Sellers →'},
+    sale: {eyebrow:'ON SALE', title:'Timeless Pieces for Less', copy:'Styles you love at an exceptional value.', cta:'Shop Sale →'}
   };
 
   function storefrontView(){
@@ -206,10 +206,18 @@
     var eyebrow = document.querySelector('[data-shop-view-eyebrow]');
     var title = document.querySelector('[data-shop-view-title]');
     var copy = document.querySelector('[data-shop-view-copy]');
+    var cta = document.querySelector('[data-shop-view-cta]');
     if(eyebrow) eyebrow.textContent = content.eyebrow;
     if(title) title.textContent = content.title;
     if(copy) copy.textContent = content.copy;
+    if(cta) cta.textContent = content.cta;
     document.documentElement.setAttribute('data-shop-view', view);
+    if(cta && !cta.__shopflowViewCta){
+      cta.__shopflowViewCta = true;
+      var go = function(){ var target = document.querySelector('.Product-List, .product-list, [data-product-grid], .w-dyn-list'); if(target) target.scrollIntoView({behavior:'smooth', block:'start'}); };
+      cta.addEventListener('click', go);
+      cta.addEventListener('keydown', function(e){ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(); } });
+    }
   }
 
   function activateNewView(newTab, shopTab){
