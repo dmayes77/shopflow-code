@@ -185,10 +185,10 @@
 
 
   var VIEW_CONTENT = {
-    all:  {eyebrow:'SHOP ALL', title:'Your Next Favorite Look', copy:'Game day looks, everyday favorites, and all the pieces that make Orange You Glad unique.', cta:'Shop All →'},
-    new:  {eyebrow:'NEW ARRIVALS', title:'Fresh Styles Just In', copy:'The latest Orange You Glad arrivals, ready for game day and every day.', cta:'Shop New →'},
-    best: {eyebrow:'BEST SELLERS', title:'Styles Everyone Loves', copy:'Customer favorites and standout styles worth another look.', cta:'Shop Best Sellers →'},
-    sale: {eyebrow:'ON SALE', title:'Timeless Pieces for Less', copy:'Styles you love at an exceptional value.', cta:'Shop Sale →'}
+    all:  {eyebrow:'THE OYG EDIT', title:'Your Next Favorite Look', copy:'Game day looks, everyday favorites, and all the pieces that make Orange You Glad unique.', cta:'EXPLORE THE COLLECTION →'},
+    new:  {eyebrow:'JUST IN', title:'Fresh Styles Just In', copy:'The latest Orange You Glad arrivals, ready for game day and every day.', cta:'EXPLORE NEW ARRIVALS →'},
+    best: {eyebrow:'MOST LOVED', title:'Styles Everyone Loves', copy:'Customer favorites and standout styles worth another look.', cta:'EXPLORE BEST SELLERS →'},
+    sale: {eyebrow:'SPECIAL PRICING', title:'Timeless Pieces for Less', copy:'Styles you love at an exceptional value.', cta:'EXPLORE SALE →'}
   };
 
   function storefrontView(){
