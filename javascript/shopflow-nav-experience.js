@@ -1,4 +1,4 @@
-/* ShopFlow – Navigation experience v2.0.0 (native Webflow tab configuration)
+/* ShopFlow – Navigation experience v2.1.0 (native Webflow tab configuration)
  * ShopFlow-specific behavior on top of the native Core Bottom Nav configuration:
  *   Home · Shop · New · Cart · More
  *
@@ -183,6 +183,35 @@
     body.insertBefore(section, body.firstChild);
   }
 
+
+  var VIEW_CONTENT = {
+    all:  {eyebrow:'SHOP ALL', title:'Your Next Favorite Look', copy:'Game day looks, everyday favorites, and all the pieces that make Orange You Glad unique.'},
+    new:  {eyebrow:'NEW ARRIVALS', title:'Fresh Styles Just In', copy:'The latest Orange You Glad arrivals, ready for game day and every day.'},
+    best: {eyebrow:'BEST SELLERS', title:'Styles Everyone Loves', copy:'Customer favorites and standout styles worth another look.'},
+    sale: {eyebrow:'ON SALE', title:'Timeless Pieces for Less', copy:'Styles you love at an exceptional value.'}
+  };
+
+  function storefrontView(){
+    if(location.pathname.replace(/\/+$/, '') !== '/shop-all') return null;
+    var value = new URLSearchParams(location.search).get('view') || 'all';
+    return VIEW_CONTENT[value] ? value : 'all';
+  }
+
+  function applyStorefrontView(){
+    var view = storefrontView();
+    if(!view) return;
+    var content = VIEW_CONTENT[view];
+    var hero = document.querySelector('[data-shop-view-hero]');
+    if(hero) hero.setAttribute('data-shop-view', view);
+    var eyebrow = document.querySelector('[data-shop-view-eyebrow]');
+    var title = document.querySelector('[data-shop-view-title]');
+    var copy = document.querySelector('[data-shop-view-copy]');
+    if(eyebrow) eyebrow.textContent = content.eyebrow;
+    if(title) title.textContent = content.title;
+    if(copy) copy.textContent = content.copy;
+    document.documentElement.setAttribute('data-shop-view', view);
+  }
+
   function activateNewView(newTab, shopTab){
     var isNew = location.pathname.replace(/\/+$/, '') === '/shop-all' &&
       new URLSearchParams(location.search).get('view') === 'new';
@@ -205,6 +234,7 @@
     var hydrate = function(){
       addMoreContent();
       activateNewView(newTab, shopTab);
+      applyStorefrontView();
     };
     hydrate();
     window.setTimeout(hydrate, 250);
