@@ -218,7 +218,7 @@
 })();
 
 
-/* ShopFlow – Navigation experience v1.3.0 (native Webflow tab configuration)
+/* ShopFlow – Navigation experience v1.4.0 (native Webflow tab configuration)
  * ShopFlow-specific behavior on top of the native Core Bottom Nav configuration:
  *   Home · Shop · New · Cart · More
  *
@@ -403,9 +403,31 @@
     body.insertBefore(section, body.firstChild);
   }
 
+  var newViewPortals = [];
+
+  function portalNewViewChrome(isNew){
+    var selectors = ['.navbar-compact', '.bottom-nav_bar'];
+    if(isNew){
+      selectors.forEach(function(selector){
+        var node = document.querySelector(selector);
+        if(!node || node.parentNode === document.body || newViewPortals.some(function(p){ return p.node === node; })) return;
+        newViewPortals.push({node:node, parent:node.parentNode, next:node.nextSibling});
+        document.body.appendChild(node);
+      });
+      return;
+    }
+    newViewPortals.slice().reverse().forEach(function(p){
+      if(!p.node || !p.parent || !p.parent.isConnected) return;
+      if(p.next && p.next.parentNode === p.parent) p.parent.insertBefore(p.node, p.next);
+      else p.parent.appendChild(p.node);
+    });
+    newViewPortals = [];
+  }
+
   function activateNewView(newTab, shopTab){
     var isNew = location.pathname.replace(/\/+$/, '') === '/shop-all' && new URLSearchParams(location.search).get('view') === 'new';
     document.documentElement.classList.toggle('is-new-view', isNew);
+    portalNewViewChrome(isNew);
     if(newTab) newTab.classList.toggle('is-active', isNew);
     if(shopTab && isNew) shopTab.classList.remove('is-active');
     var newLink = newTab && newTab.querySelector(LINK);
