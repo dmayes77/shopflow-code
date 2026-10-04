@@ -1,4 +1,4 @@
-/* ShopFlow – Navigation experience v1.2.0 (native Webflow tab configuration)
+/* ShopFlow – Navigation experience v1.3.0 (native Webflow tab configuration)
  * ShopFlow-specific behavior on top of the native Core Bottom Nav configuration:
  *   Home · Shop · New · Cart · More
  *
@@ -204,21 +204,6 @@
     var store = businessInfo();
     document.title = 'New Arrivals | ' + ((store && store.name) || 'ShopFlow');
 
-    var sortNewest = function(){
-      document.querySelectorAll('.product-list[sf-list]').forEach(function(list){
-        var items = Array.prototype.slice.call(list.children);
-        var sorted = items.slice().sort(function(a, b){
-          var aProduct = a.querySelector('[sf-product]');
-          var bProduct = b.querySelector('[sf-product]');
-          var av = Number(aProduct && aProduct.getAttribute('sf-product')) || 0;
-          var bv = Number(bProduct && bProduct.getAttribute('sf-product')) || 0;
-          return bv - av;
-        });
-        if(!sorted.every(function(item, i){ return item === items[i]; })) sorted.forEach(function(item){ list.appendChild(item); });
-      });
-    };
-    sortNewest();
-    window.setTimeout(sortNewest, 350);
   }
 
   function init(){
