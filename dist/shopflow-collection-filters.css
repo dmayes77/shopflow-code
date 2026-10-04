@@ -1,4 +1,4 @@
-/* ShopFlow Collection Filters v1.2.0 – CSS (static).
+/* ShopFlow Collection Filters v1.4.0 – CSS (static).
    v1.2.0: tag sections (.filter-subgroup). Groups marked data-filter-sections keep their chips hidden until the script has
    removed the tag prefixes, so a raw "Color: Orange" is never shown, not even for a moment.
    v1.1.0: ≤991px the panel is a bottom sheet (chips, grab handle, swipe down to close, Show results + Reset all pinned at the
@@ -31,19 +31,12 @@
 @media (max-width:991px){
 .collection-filters{position:static;flex:none;width:100%}
 .collection-filters-trigger{display:inline-flex}
-.collection-filters-overlay{display:block;position:fixed;inset:0;z-index:2000;background:rgba(17,17,17,.45);opacity:0;pointer-events:none;transition:opacity .25s ease}
-/* bottom sheet (covers the bottom nav, like every other sheet) */
-.collection-filters-panel{position:fixed;top:auto;bottom:0;left:0;right:0;z-index:2001;display:flex;flex-direction:column;box-sizing:border-box;width:min(36rem,100%);height:auto;max-height:92vh;max-height:92dvh;margin:0 auto;padding:0;border-radius:1.25rem 1.25rem 0 0;background-color:var(--_theme---background--primary);box-shadow:0 -12px 40px rgba(17,17,17,.2);transform:translateY(100%);visibility:hidden;transition:transform .26s cubic-bezier(.2,.8,.2,1),visibility 0s linear .26s}
-.collection-filters.is-open .collection-filters-panel{transform:none;visibility:visible;transition:transform .26s cubic-bezier(.2,.8,.2,1)}
-.collection-filters-panel.is-dragging{transition:none!important}
-.collection-filters.is-open .collection-filters-overlay{opacity:1;pointer-events:auto}
 .collection-filters-head{position:relative;display:flex;flex:none;align-items:center;justify-content:space-between;padding:1.75rem 1.25rem .5rem;touch-action:none}
 .collection-filters-head::before{content:"";position:absolute;top:.5rem;left:50%;width:2.5rem;height:.3rem;margin-left:-1.25rem;border-radius:999px;background:var(--_theme---border--primary)}
 .collection-filters-body{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:0 1.25rem}
 .collection-filters-foot{display:flex;flex-direction:column;gap:.625rem;flex:none;padding:1rem 1.25rem calc(1rem + env(safe-area-inset-bottom,0px));border-top:1px solid var(--_theme---border--subtle)}
 .collection-filters-apply{display:inline-flex;order:1}
 .collection-filters-clear{order:2}
-html.filters-open{overflow:hidden}
 /* groups: plain headings, chips underneath (only Brand / Collection stay collapsible) */
 .filter-group:not([data-filter-collapsed]) .filter-group-chevron{display:none}
 .filter-group:not([data-filter-collapsed]).is-collapsed .filter-group-content{display:block}
@@ -59,11 +52,9 @@ html.filters-open{overflow:hidden}
 .sort-chip[aria-checked="true"]{border-color:var(--_theme---action--primary);background:var(--_theme---action--primary);color:var(--_theme---action--primary-text);font-weight:600}
 .sort-chip:focus-visible{outline:2px solid var(--_theme---focus--ring);outline-offset:2px}
 }
-@media (prefers-reduced-motion:reduce){.collection-filters-panel,.collection-filters-overlay,.filter-group-chevron{transition:none!important}}
+@media (prefers-reduced-motion:reduce){.filter-group-chevron{transition:none!important}}
 .sort-chips{display:none}
 @media (max-width:991px){.sort-chips{display:flex}}
-/* v1.0.5 */
-html.filters-open .padding-global:has([data-collection-filters].is-open),html.filters-open .shell-main:has([data-collection-filters].is-open){z-index:2001}
 /* v1.0.6 */
 .collection-filters,.collection-filters-panel,.collection-filters-body{scrollbar-width:none!important;-ms-overflow-style:none}
 .collection-filters::-webkit-scrollbar,.collection-filters-panel::-webkit-scrollbar,.collection-filters-body::-webkit-scrollbar{display:none;width:0;height:0}

@@ -1,4 +1,4 @@
-/* ShopFlow – Cart Drawer behavior v1.3.0
+/* ShopFlow – Cart Drawer behavior v1.4.0
  * Works on top of Storesynk's cart ([sf-cart]); Storesynk remains responsible
  * for product, quantity, price, checkout and persistence.
  *
@@ -163,90 +163,34 @@
   });
   render();
 
-  /* modal state: lock the page and remove the bottom nav from the focus order */
-  let wasOpen = false;
-  let returnFocus = null;
+  /* Core Sheet owns the cart presentation; Storesynk continues to own cart state/actions. */
+  let bridging = false;
+  const sheet = () => window.CoreSheet || null;
+  const openInSheet = () => {
+    if (bridging || !isOpen() || !sheet()) return;
+    const active = sheet().current && sheet().current();
+    if (active === cart) return;
+    bridging = true;
+    sheet().open(cart, {mode:'drawer', title:'Shopping cart'});
+    window.setTimeout(() => { bridging = false; }, 0);
+  };
+  const closeStoreCart = () => {
+    if (!isOpen()) return;
+    bridging = true;
+    closeCart();
+    window.setTimeout(() => { bridging = false; }, 0);
+  };
+
+  /* Storesynk's popup class is the source of truth for cart open state. */
   const syncOpen = () => {
-    const open = isOpen();
-    document.documentElement.classList.toggle('sf-cart-modal-open', open);
-    if (bottomNav) {
-      bottomNav.inert = open;
-      if (open) bottomNav.setAttribute('aria-hidden', 'true');
-      else bottomNav.removeAttribute('aria-hidden');
-    }
-    cart.setAttribute('role', 'dialog');
-    cart.setAttribute('aria-modal', 'true');
-    if (title?.id) cart.setAttribute('aria-labelledby', title.id);
-    else cart.setAttribute('aria-label', 'Shopping cart');
-
-    if (open && !wasOpen) {
-      returnFocus = document.activeElement;
-      window.setTimeout(() => {
-        const preferred = window.matchMedia('(max-width: 767px)').matches ? clearControl : closeControl();
-        const first = isVisible(preferred) ? preferred : focusableControls()[0];
-        first?.focus({preventScroll: true});
-      }, 280);
-    } else if (!open && wasOpen && returnFocus?.focus) {
-      returnFocus.focus({preventScroll: true});
-      returnFocus = null;
-    }
-    wasOpen = open;
+    if (bridging) return;
+    if (isOpen()) openInSheet();
+    else if (sheet() && sheet().current && sheet().current() === cart) sheet().close(null, {noFocus:true});
   };
-  new MutationObserver(syncOpen).observe(popup, {attributes: true, attributeFilter: ['class']});
-  syncOpen();
+  new MutationObserver(syncOpen).observe(popup, {attributes:true, attributeFilter:['class']});
 
-  document.addEventListener('keydown', event => {
-    if (!isOpen() || (window.ShopFlowSheet && window.ShopFlowSheet.top())) return;
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      closeCart();
-      return;
-    }
-    if (event.key !== 'Tab') return;
-    const focusable = focusableControls();
-    if (!focusable.length) return;
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault();
-      last.focus();
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault();
-      first.focus();
-    }
+  cart.addEventListener('sheet:close', () => {
+    if (!bridging) closeStoreCart();
   });
-
-  /* swipe down on the mobile header to close */
-  const head = cart.querySelector('.cart_header');
-  const phone = window.matchMedia('(max-width: 767px)');
-  let drag = null;
-  const resetDrag = () => {
-    cart.style.transition = '';
-    cart.style.transform = '';
-    drag = null;
-  };
-  if (head) {
-    head.addEventListener('pointerdown', event => {
-      if (!phone.matches || !isOpen() || event.target.closest('[sf-cart-close],[data-cart-clear],button,a,input')) return;
-      if (event.pointerType === 'mouse' && event.button !== 0) return;
-      drag = {id: event.pointerId, y0: event.clientY, t0: event.timeStamp, dy: 0};
-      cart.style.transition = 'none';
-      try { head.setPointerCapture(event.pointerId); } catch (error) {}
-    });
-    head.addEventListener('pointermove', event => {
-      if (!drag || event.pointerId !== drag.id) return;
-      drag.dy = Math.max(0, event.clientY - drag.y0);
-      cart.style.transform = `translateY(${drag.dy}px)`;
-    });
-    const endDrag = event => {
-      if (!drag || event.pointerId !== drag.id) return;
-      const state = drag;
-      const velocity = state.dy / Math.max(1, event.timeStamp - state.t0);
-      const shouldClose = state.dy > Math.min(140, cart.offsetHeight * .3) || (velocity > .6 && state.dy > 24);
-      resetDrag();
-      if (shouldClose) closeCart();
-    };
-    head.addEventListener('pointerup', endDrag);
-    head.addEventListener('pointercancel', endDrag);
-  }
+  syncOpen();
 })();
