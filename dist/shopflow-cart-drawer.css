@@ -1,4 +1,4 @@
-/* ShopFlow – Cart content skin v1.4.0
+/* ShopFlow – Cart content skin v1.5.0
  * Storesynk remains the cart engine. This file turns its popup into a polished
  * bottom sheet on phones and a right drawer above 767px. The popup deliberately
  * sits above the mobile bottom nav to remove navigation distractions while the
@@ -180,3 +180,9 @@
   [sf-cart] .cart-item_quantity-block [sf-change-quantity-inc]{width:2.25rem}
   [sf-cart] .cart-item_quantity-block [sf-change-quantity]{width:2.25rem}
 }
+
+/* Inside Core Sheet, the shared shell owns title + close chrome. */
+[data-sheet-host][data-sheet-view="cart"] [sf-cart] .cart_header h3,
+[data-sheet-host][data-sheet-view="cart"] [sf-cart] .cart_header [sf-cart-close]{display:none!important}
+[data-sheet-host][data-sheet-view="cart"] [sf-cart] .cart_header{min-height:0;padding:.25rem 0 .75rem;border-bottom:1px solid var(--_theme---border--subtle,#e5e5e5)}
+[data-sheet-host][data-sheet-view="cart"] [sf-cart] [data-cart-clear]{margin-left:auto}
