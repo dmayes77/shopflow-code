@@ -1,4 +1,4 @@
-/* ShopFlow – Cart Drawer behavior v1.2.1
+/* ShopFlow – Cart Drawer behavior v1.3.0
  * Works on top of Storesynk's cart ([sf-cart]); Storesynk remains responsible
  * for product, quantity, price, checkout and persistence.
  *
@@ -53,6 +53,14 @@
   const closeControl = () => cart.querySelector('.cart_header [sf-cart-close]') || popup.querySelector('[sf-cart-close]');
   const closeCart = () => closeControl()?.click();
 
+  /* Storesynk owns the close action; Mayes Core owns the close-control presentation. */
+  const normalizeClose = () => {
+    const close = closeControl();
+    if (!close) return;
+    close.setAttribute('data-sheet-x', '');
+    close.setAttribute('aria-label', 'Close cart');
+  };
+
   /* minus at one does nothing; the X removes the item */
   cart.addEventListener('click', event => {
     const dec = event.target.closest('[sf-change-quantity-dec]');
@@ -99,6 +107,7 @@
   function render() {
     observer.disconnect();
     try {
+      normalizeClose();
       visibleItems().forEach(item => {
         const input = item.querySelector('[sf-change-quantity]');
         const one = !!input && Number(input.value || input.getAttribute('value') || 1) <= 1;
