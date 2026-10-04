@@ -1,4 +1,4 @@
-/* ShopFlow – Cart content adapter v1.5.0
+/* ShopFlow – Cart content adapter v1.6.0
  * Works on top of Storesynk's cart ([sf-cart]); Storesynk remains responsible
  * for product, quantity, price, checkout and persistence.
  *
@@ -173,6 +173,7 @@
     const active = sheet().current && sheet().current();
     if (active === cart) return;
     bridging = true;
+    popup.classList.add('is-core-sheet-mounted');
     sheet().open(cart, {mode:'drawer', title:cartCount() ? `Your Cart (${cartCount()})` : 'Your Cart'});
     window.setTimeout(() => { bridging = false; }, 0);
   };
@@ -192,6 +193,7 @@
   new MutationObserver(syncOpen).observe(popup, {attributes:true, attributeFilter:['class']});
 
   cart.addEventListener('sheet:close', () => {
+    popup.classList.remove('is-core-sheet-mounted');
     if (!bridging) closeStoreCart();
   });
   syncOpen();

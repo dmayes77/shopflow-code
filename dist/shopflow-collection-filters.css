@@ -1,4 +1,4 @@
-/* ShopFlow Collection Filters v1.5.0 – CSS (static).
+/* ShopFlow Collection Filters v1.5.1 – CSS (static).
    v1.2.0: tag sections (.filter-subgroup). Groups marked data-filter-sections keep their chips hidden until the script has
    removed the tag prefixes, so a raw "Color: Orange" is never shown, not even for a moment.
    v1.1.0: ≤991px the panel is a bottom sheet (chips, grab handle, swipe down to close, Show results + Reset all pinned at the
@@ -60,5 +60,6 @@
 .collection-filters::-webkit-scrollbar,.collection-filters-panel::-webkit-scrollbar,.collection-filters-body::-webkit-scrollbar{display:none;width:0;height:0}
 
 /* Inside Core Sheet, the shared shell owns title, grabber and close chrome. */
-[data-sheet-host][data-sheet-view="filters"] .collection-filters-head{display:none!important}
+[data-sheet-host][data-sheet-view="filters"] [data-sheet-content="filters"] .collection-filters-head{display:none!important}
+[data-sheet-host][data-sheet-view="filters"] [data-sheet-content="filters"] > .collection-filters-head{display:none!important}
 [data-sheet-host][data-sheet-view="filters"] .collection-filters-body{padding:0;overflow:visible}
