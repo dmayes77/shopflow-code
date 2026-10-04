@@ -545,14 +545,14 @@
   window.ShopFlowStore = { version: '1.0.0', get: get, all: function(){ cache = read(); return Object.assign({}, cache); }, fill: fill };
 })();
 
-/* ShopFlow – Quick Add v1.2.0 – product option picker shown in the shared Mayes Core sheet.
+/* ShopFlow – Quick Add v1.3.0 – product option picker shown in the shared Mayes Core sheet.
    Installed in Page Shell › embed "ShopFlow Core Code" (section 2).
    Card "Add to cart" / "+" on a product with 2+ sizes opens the [data-quick-add] sheet that sits next to the card in the
    same collection item (it carries its own sf-product context). One-size products add straight to cart.
    Storesynk handles variant selection (sf-change-option / sf-option-value) and cart (sf-add-to-cart / sf-buy-now). */
 (function(){
   if(window.__sfQuickAdd) return; window.__sfQuickAdd = true;
-  var CARD_BTN = '[sf-add-to-cart]';
+  var CARD_BTN = '.product-card .product-card-actions .button, .product-card .product-card-actions [sf-add-to-cart]';
   function sheetApi(){ return window.CoreSheet || window.ShopFlowSheet; }
 
   function sheetFor(btn){
@@ -585,7 +585,7 @@
   document.addEventListener('click', function(e){
     var btn = e.target.closest && e.target.closest(CARD_BTN);
     var api = sheetApi();
-    if(!btn || btn.closest('[data-quick-add]') || !api) return;
+    if(!btn || btn.closest('[data-quick-add]') || !btn.closest('.product-card') || !api) return;
     var s = sheetFor(btn);
     if(!s) return;
     prep(s);
