@@ -545,7 +545,7 @@
   window.ShopFlowStore = { version: '1.0.0', get: get, all: function(){ cache = read(); return Object.assign({}, cache); }, fill: fill };
 })();
 
-/* ShopFlow – Quick Add v1.3.1 – product option picker shown in the shared Mayes Core sheet.
+/* ShopFlow – Quick Add v1.3.2 – product option picker shown in the shared Mayes Core sheet.
    Installed in Page Shell › embed "ShopFlow Core Code" (section 2).
    Card "Add to cart" / "+" on a product with 2+ sizes opens the [data-quick-add] sheet that sits next to the card in the
    same collection item (it carries its own sf-product context). One-size products add straight to cart.
@@ -553,9 +553,9 @@
 (function(){
   /* A legacy cache-keyed core may run first and set the old boolean guard before
      CoreSheet exists. Keep a versioned guard so the current runtime can recover. */
-  if(window.__sfQuickAddVersion === '1.3.1') return;
+  if(window.__sfQuickAddVersion === '1.3.2') return;
   window.__sfQuickAdd = true;
-  window.__sfQuickAddVersion = '1.3.1';
+  window.__sfQuickAddVersion = '1.3.2';
   var CARD_BTN = '.product-card .product-card-actions .button, .product-card .product-card-actions [sf-add-to-cart]';
   function sheetApi(){ return window.CoreSheet || window.ShopFlowSheet; }
 
@@ -576,6 +576,10 @@
   }
   function prep(s){
     if(s.__qaReady) return; s.__qaReady = true;
+    /* CoreSheet owns the visible grabber and close control. Hide the legacy
+       header embedded in each Quick Add CMS item so it cannot render twice. */
+    var legacyHead = s.querySelector('[data-sheet-head="1"]');
+    if(legacyHead){ legacyHead.hidden = true; legacyHead.style.display = 'none'; legacyHead.setAttribute('aria-hidden','true'); }
     var list = s.querySelector('[data-quick-add-sizes]');
     if(list) list.setAttribute('role','radiogroup');
     options(s).forEach(function(o){ o.setAttribute('role','radio'); o.setAttribute('tabindex','0'); o.setAttribute('aria-checked','false'); });
