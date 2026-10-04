@@ -1,4 +1,4 @@
-/* ShopFlow – Mobile Nav v1.1.2 – Shop bottom sheet built on the shared ShopFlow Sheet engine.
+/* ShopFlow – Mobile Nav v1.1.0 – Shop bottom sheet built on the shared ShopFlow Sheet engine.
    Opened by the bottom-nav Shop tab or navbar hamburger; the old Webflow dropdown list is hidden.
    Installed in Navigation / OYG › embed "ShopFlow Mobile Nav Code". */
 .navbar-compact_mobile-list{display:none!important}
@@ -41,38 +41,6 @@
 }
 [data-sheet-host][data-sheet-view="mobile-nav"] [data-sheet-title]{display:none}
 [data-sheet-host][data-sheet-view="mobile-nav"] [data-sheet-body]{padding:0;overscroll-behavior:contain}
-[data-sheet-host][data-sheet-view="mobile-nav"] [data-sheet-autofocus]:focus{outline:none}
-[data-sheet-host][data-sheet-view="mobile-nav"] .shop-sheet_category,
-[data-sheet-host][data-sheet-view="mobile-nav"] .shop-sheet_quick-link{
-  -webkit-tap-highlight-color:transparent;
-  outline:none;
-  transition:background-color .14s ease,box-shadow .14s ease,transform .14s ease
-}
-@media(hover:none),(pointer:coarse){
-  [data-sheet-host][data-sheet-view="mobile-nav"] .shop-sheet_category:focus,
-  [data-sheet-host][data-sheet-view="mobile-nav"] .shop-sheet_category:focus-visible,
-  [data-sheet-host][data-sheet-view="mobile-nav"] .shop-sheet_quick-link:focus,
-  [data-sheet-host][data-sheet-view="mobile-nav"] .shop-sheet_quick-link:focus-visible{outline:none!important;box-shadow:none!important}
-  [data-sheet-host][data-sheet-view="mobile-nav"] .shop-sheet_category:active,
-  [data-sheet-host][data-sheet-view="mobile-nav"] .shop-sheet_quick-link:active{
-    background-color:var(--mnav-tint);
-    transform:scale(.985)
-  }
-}
-@media(hover:hover) and (pointer:fine){
-  [data-sheet-host][data-sheet-view="mobile-nav"] .shop-sheet_category:focus-visible,
-  [data-sheet-host][data-sheet-view="mobile-nav"] .shop-sheet_quick-link:focus-visible{
-    outline:none;
-    background-color:var(--mnav-tint);
-    box-shadow:inset 3px 0 0 var(--mnav-brand)
-  }
-}
-@media(prefers-reduced-motion:reduce){
-  [data-sheet-host][data-sheet-view="mobile-nav"] .shop-sheet_category,
-  [data-sheet-host][data-sheet-view="mobile-nav"] .shop-sheet_quick-link{transition:none}
-  [data-sheet-host][data-sheet-view="mobile-nav"] .shop-sheet_category:active,
-  [data-sheet-host][data-sheet-view="mobile-nav"] .shop-sheet_quick-link:active{transform:none}
-}
 html:has([data-sheet-host][data-sheet-view="mobile-nav"].is-open) [data-bottom-nav]{z-index:1003}
 
 @media(max-width:479px){

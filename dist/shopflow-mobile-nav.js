@@ -1,4 +1,4 @@
-/* ShopFlow – Mobile Nav v1.1.1 – wires the Shop tab and navbar hamburger to the
+/* ShopFlow – Mobile Nav v1.1.0 – wires the Shop tab and navbar hamburger to the
    [data-sheet="mobile-nav"] content, shown as a bottom sheet by the shared Sheet engine. */
 (function(){
   if(window.__sfMobileNav) return; window.__sfMobileNav = true;
@@ -48,11 +48,6 @@
   function prep(){
     document.querySelectorAll(TRIGGER).forEach(function(t){ t.setAttribute('aria-haspopup','dialog'); t.setAttribute('aria-expanded','false'); });
     var s = sheet(); if(!s) return;
-    /* Put initial dialog focus on the heading, not the first category card.
-       This avoids a click-triggered focus ring while keeping keyboard focus
-       indicators on every interactive control. */
-    var title = s.querySelector('.shop-sheet_title, [data-shop-sheet-content] h2');
-    if(title){ title.setAttribute('data-sheet-autofocus',''); title.setAttribute('tabindex','-1'); }
     s.addEventListener('sheet:open', function(){ document.querySelectorAll(TRIGGER).forEach(function(t){ t.setAttribute('aria-expanded','true'); }); });
     s.addEventListener('sheet:close', function(){ document.querySelectorAll(TRIGGER).forEach(function(t){ t.setAttribute('aria-expanded','false'); }); });
   }
