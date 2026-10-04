@@ -1,16 +1,18 @@
-/* ShopFlow – Cart view v2.0.0
+/* ShopFlow – Cart view v2.0.1
  * Core Sheet owns the shell. Storesynk's popup stays in the DOM as the hidden
  * commerce engine. Only ShopFlow-owned .sf-cart-view__* markup is presented.
  */
 
 /* Storesynk must remain open so its state/actions stay live, but its popup shell
    and overlay must never render behind Core Sheet. */
+[sf-cart-popup].is-core-sheet-managed,
 [sf-cart-popup].is-core-sheet-mounted{
   visibility:hidden!important;
   opacity:0!important;
   pointer-events:none!important;
   background:transparent!important
 }
+[sf-cart-popup].is-core-sheet-managed > .cart-popup-overlay,
 [sf-cart-popup].is-core-sheet-mounted > .cart-popup-overlay{display:none!important}
 
 [data-sheet-host][data-sheet-view="cart"] [data-sheet-body].sf-cart-view__body{

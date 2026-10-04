@@ -1,4 +1,4 @@
-/* ShopFlow – Cart adapter v2.0.3
+/* ShopFlow – Cart adapter v2.0.4
  * Storesynk owns cart state and commerce actions. ShopFlow reads that state,
  * renders an independent Cart view, and proxies actions back to Storesynk.
  * Core Sheet remains the only visible drawer shell.
@@ -10,6 +10,11 @@
   const cart = document.querySelector('[sf-cart]');
   const popup = cart && cart.closest('[sf-cart-popup]');
   if (!cart || !popup) return;
+
+  /* The Storesynk popup is the cart engine, never the visible UI. Mark it as
+     managed before it can be opened so its legacy modal cannot flash while
+     Core Sheet is mounting the ShopFlow cart view. */
+  popup.classList.add('is-core-sheet-managed');
 
   const sheet = () => window.CoreSheet || window.ShopFlowSheet || null;
   const isOpen = () => popup.classList.contains('sf-cart-opened');
@@ -395,12 +400,17 @@
 
   renderView();
   let lastPopupOpen = isOpen();
-  if (lastPopupOpen) openInSheet();
-  else popup.classList.remove('is-core-sheet-mounted');
-  window.setInterval(() => {
+  const syncPopupClass = () => {
     const next = isOpen();
     if (next === lastPopupOpen) return;
     lastPopupOpen = next;
     syncOpenState();
-  }, 120);
+  };
+  const popupObserver = new MutationObserver(syncPopupClass);
+  popupObserver.observe(popup, {attributes: true, attributeFilter: ['class']});
+  if (lastPopupOpen) openInSheet();
+  else popup.classList.remove('is-core-sheet-mounted');
+  /* A slow fallback covers integrations that replace the popup node's state
+     without a directly observable class mutation. */
+  window.setInterval(syncPopupClass, 500);
 })();
