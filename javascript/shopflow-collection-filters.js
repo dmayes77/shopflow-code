@@ -229,6 +229,10 @@
     };
 
     // Mobile drawer
+    // Filtering owns the close action; Mayes Core owns the close-control presentation.
+    qa(root, '.collection-filters-panel [data-filters-close]').forEach(b => {
+      if (!b.classList.contains('collection-filters-overlay')) b.setAttribute('data-sheet-x', '');
+    });
     const open = () => {
       root.classList.add('is-open');
       document.documentElement.classList.add('filters-open');
