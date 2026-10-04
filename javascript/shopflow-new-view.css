@@ -1,6 +1,25 @@
-/* ShopFlow – New discovery view v1.0.0
+/* ShopFlow – New discovery view v1.1.0
  * Native Webflow content is revealed only by the URL-derived is-new-view state.
  * Products remain the existing Storesynk/Shopify collection list below it. */
+
+/* Storefront shell invariant.
+ * New Arrivals is a state of /shop-all, not a separate page. Keep shared
+ * navigation anchored to the viewport exactly as it is in every other view. */
+html.is-new-view .navbar-compact{
+  position:fixed!important;
+  left:0!important;
+  right:0!important;
+  top:var(--sf-announcement-offset,0px)!important;
+  z-index:1000!important;
+}
+html.is-new-view .bottom-nav_bar{
+  position:fixed!important;
+  left:.5rem!important;
+  right:.5rem!important;
+  bottom:.5rem!important;
+  z-index:1000!important;
+}
+
 [data-new-discovery]{display:none}
 html.is-new-view [data-new-discovery]{display:block}
 html.is-new-view .shop-all-hero{display:none!important}
