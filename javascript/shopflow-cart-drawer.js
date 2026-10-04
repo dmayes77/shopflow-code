@@ -1,4 +1,4 @@
-/* ShopFlow – Cart content adapter v1.8.0
+/* ShopFlow – Cart content adapter v1.9.0
  * Works on top of Storesynk's cart ([sf-cart]); Storesynk remains responsible
  * for product, quantity, price, checkout and persistence.
  *
@@ -165,7 +165,7 @@
   });
   render();
 
-  /* Compose cart content inside Core Sheet without mounting Storesynk's popup shell. */
+  /* Render a presentation-only cart view in Core Sheet. Storesynk stays in place as the engine. */
   let bridging = false;
   const sheet = () => window.CoreSheet || null;
   const cartSlot = document.createElement('div');
@@ -175,39 +175,83 @@
   cartSlot.hidden = true;
   document.body.appendChild(cartSlot);
 
-  const parts = [
-    cart.querySelector('[sf-cart-list]'),
-    cart.querySelector('[sf-cart-empty]'),
-    cart.querySelector('.cart_summary')
-  ].filter(Boolean);
-  let homes = [];
+  const sourceItems = () => visibleItems();
+  const syncCartView = () => {
+    if (!cartSlot.isConnected) return;
+    cartSlot.innerHTML = '';
+    const items = sourceItems();
+    if (!items.length) {
+      const empty = cart.querySelector('[sf-cart-empty]');
+      if (empty) cartSlot.appendChild(empty.cloneNode(true));
+      return;
+    }
 
-  const mountCartContent = () => {
-    if (homes.length) return;
-    homes = parts.map(node => {
-      const marker = document.createComment('cart-home');
-      node.parentNode.insertBefore(marker, node);
-      cartSlot.appendChild(node);
-      return [node, marker];
+    const list = document.createElement('div');
+    list.setAttribute('data-cart-view-list', '');
+    items.forEach((source, index) => {
+      const item = source.cloneNode(true);
+      item.setAttribute('data-cart-view-item', String(index));
+      item.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+      list.appendChild(item);
     });
+    cartSlot.appendChild(list);
+
+    const summary = cart.querySelector('.cart_summary');
+    if (summary) {
+      const viewSummary = summary.cloneNode(true);
+      viewSummary.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+      cartSlot.appendChild(viewSummary);
+    }
   };
-  const restoreCartContent = () => {
-    homes.forEach(([node, marker]) => {
-      if (marker.parentNode) {
-        marker.parentNode.insertBefore(node, marker);
-        marker.parentNode.removeChild(marker);
+
+  const sourceControl = (viewControl, selector) => {
+    const viewItem = viewControl.closest('[data-cart-view-item]');
+    if (!viewItem) return null;
+    const source = sourceItems()[Number(viewItem.getAttribute('data-cart-view-item'))];
+    return source && source.querySelector(selector);
+  };
+
+  cartSlot.addEventListener('click', event => {
+    const dec = event.target.closest('[sf-change-quantity-dec]');
+    const inc = event.target.closest('[sf-change-quantity-inc]');
+    const remove = event.target.closest('[sf-cart-item-remove]');
+    const checkout = event.target.closest('[sf-checkout],.button');
+    const clear = event.target.closest('[data-cart-clear]');
+    const cont = event.target.closest('[data-cart-continue]');
+
+    if (dec || inc || remove) {
+      event.preventDefault();
+      const selector = dec ? '[sf-change-quantity-dec]' : inc ? '[sf-change-quantity-inc]' : '[sf-cart-item-remove]';
+      sourceControl(dec || inc || remove, selector)?.click();
+      window.setTimeout(syncCartView, 80);
+      return;
+    }
+    if (clear) {
+      event.preventDefault();
+      clearControl?.click();
+      window.setTimeout(syncCartView, 220);
+      return;
+    }
+    if (cont) {
+      event.preventDefault();
+      sheet()?.close();
+      return;
+    }
+    if (checkout) {
+      const sourceCheckout = cart.querySelector('[sf-checkout]');
+      if (sourceCheckout) {
+        event.preventDefault();
+        sourceCheckout.click();
       }
-    });
-    homes = [];
-    popup.classList.remove('is-core-sheet-mounted');
-  };
+    }
+  });
+
   const openInSheet = () => {
     if (bridging || !isOpen() || !sheet()) return;
-    const active = sheet().current && sheet().current();
-    if (active === cartSlot) return;
+    if (sheet().current && sheet().current() === cartSlot) return;
     bridging = true;
     popup.classList.add('is-core-sheet-mounted');
-    mountCartContent();
+    syncCartView();
     sheet().open(cartSlot, {mode:'bottom', title:cartCount() ? `Your Cart (${cartCount()})` : 'Your Cart'});
     window.setTimeout(() => { bridging = false; }, 0);
   };
@@ -217,17 +261,26 @@
     closeCart();
     window.setTimeout(() => { bridging = false; }, 0);
   };
-
   const syncOpen = () => {
     if (bridging) return;
-    if (isOpen()) openInSheet();
-    else if (sheet() && sheet().current && sheet().current() === cartSlot) sheet().close(null, {noFocus:true});
+    if (isOpen()) {
+      openInSheet();
+      if (sheet() && sheet().current && sheet().current() === cartSlot) syncCartView();
+    } else if (sheet() && sheet().current && sheet().current() === cartSlot) {
+      sheet().close(null, {noFocus:true});
+    }
   };
   new MutationObserver(syncOpen).observe(popup, {attributes:true, attributeFilter:['class']});
+  new MutationObserver(() => {
+    if (sheet() && sheet().current && sheet().current() === cartSlot) {
+      clearTimeout(renderTimer);
+      renderTimer = window.setTimeout(syncCartView, 40);
+    }
+  }).observe(cart, {subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['value','class','style']});
 
   cartSlot.addEventListener('sheet:close', () => {
+    popup.classList.remove('is-core-sheet-mounted');
     if (!bridging) closeStoreCart();
-    window.setTimeout(restoreCartContent, 300);
   });
   syncOpen();
 })();
