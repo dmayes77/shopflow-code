@@ -14,6 +14,7 @@ layout, behavior and accessibility on top of Storesynk's `sf-*` attributes.
 | File(s) | Version | Installed in Webflow | Layer |
 |---|---|---|---|
 | `shopflow-page-stability.css` | 1.0.0 | Page Shell › embed **ShopFlow Core Code** (section 0) | Core 2.0 candidate |
+| `core-motion.js` | 0.3.0 | Bundled into Page Shell › **ShopFlow Core Code** | Core 2.0 candidate |
 | `shopflow-announcement.css` / `.js` | 1.0.0 | Page Shell › **ShopFlow Core Code** – announcement bar stacked above the navbar; both scroll up, then the navbar sticks at the top (`--sf-announcement-offset`) | Core 2.0 candidate |
 | `shopflow-sheet.css` / `.js` | 1.3.0 | Page Shell › embed **ShopFlow Core Code** (section 1) – the shared drawer | Core 2.0 candidate |
 | `core-bottom-nav.css` / `.js` | 1.0.0 | Page Shell › **ShopFlow Core Code** – behavior for Navigation / Bottom Nav (tab actions, active tab, badges) | Core 2.0 candidate |
@@ -30,12 +31,11 @@ layout, behavior and accessibility on top of Storesynk's `sf-*` attributes.
 | `shopflow-collection-filters.css` | 1.2.0 | Shop All › filters embed (`<link id="shopflow-collection-filters-css">`) | ShopFlow |
 | `shopflow-collection-filters.js` | 1.2.0 | Shop All › filters embed | ShopFlow |
 | `shopflow-product-card-quick-add.css` | 1.1.0 | Product Card component (mobile "+" button) | ShopFlow |
-| `shopflow-navbar-scroll.js` | 2.0.1 | Site footer custom code (registered script `shopflownavbarscroll`) | ShopFlow |
 | `shopflow-product-card-images.js` | 1.1.0 | Site footer custom code (registered script `shopflowresponsiveimages`) | ShopFlow |
 | `shopflow-wishlist.css` / `.js` | 1.0.1 | **Parked, not installed.** Kept for when the wishlist comes back. | ShopFlow |
 
 **ShopFlow Core Code** is one embed in the Page Shell (loaded on every page). It loads `dist/shopflow-core.css` / `.js`,
-which `build.sh` bundles in this order: page stability → announcement → sheet → bottom nav → consent → ShopFlow navigation → brand bar → store fill → quick add → size
+which `build.sh` bundles in this order: page stability → Core Motion → announcement → sheet → bottom nav → consent → ShopFlow navigation → brand bar → store fill → quick add → size
 labels → cart page background. `core-consent-head.html` is separate: it goes in Site settings › Custom code › Head.
 
 ## The shared drawer (Sheet v1.3.0)
@@ -153,8 +153,7 @@ Feature embeds can stay pinned to a release tag (example for the product page):
 | Products Template › **ShopFlow PDP Code** | `dist/shopflow-pdp.css`, `.js`; loaded from `@main` |
 | Shop All › filters embed | `dist/shopflow-collection-filters.css` (the `<link>` keeps `id="shopflow-collection-filters-css"`), `.js`; loaded from `@main` |
 
-Not on jsDelivr (yet): the Product Card component embeds (`shopflow-product-card-quick-add.css`) and the two site
-footer scripts (`shopflow-navbar-scroll.js`, `shopflow-product-card-images.js`), which are registered in Webflow.
+Not on jsDelivr (yet): the Product Card component embed (`shopflow-product-card-quick-add.css`) and the site footer responsive-image script (`shopflow-product-card-images.js`), which is registered in Webflow. Navbar scroll-state behavior has moved into `core-motion.js` and is bundled with `shopflow-core.js`.
 
 ## Releasing a new version
 
