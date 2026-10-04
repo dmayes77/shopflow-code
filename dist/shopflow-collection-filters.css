@@ -63,3 +63,10 @@
 [data-sheet-host][data-sheet-view="filters"] [data-sheet-content="filters"] .collection-filters-head{display:none!important}
 [data-sheet-host][data-sheet-view="filters"] [data-sheet-content="filters"] > .collection-filters-head{display:none!important}
 [data-sheet-host][data-sheet-view="filters"] .collection-filters-body{padding:0;overflow:visible}
+
+
+/* v1.6.0 Core Sheet adapter: the legacy mobile panel is only a content source. */
+@media (max-width:991px){
+  .collection-filters-panel{display:none!important}
+  [data-sheet-host][data-sheet-view="filters"] .collection-filters-body{display:block!important;padding:0;overflow:visible}
+}
