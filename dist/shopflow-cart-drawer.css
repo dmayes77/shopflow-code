@@ -1,4 +1,4 @@
-/* ShopFlow – Cart view v2.0.2
+/* ShopFlow – Cart view v2.0.3
  * Core Sheet owns the shell. Storesynk's popup stays in the DOM as the hidden
  * commerce engine. Only ShopFlow-owned .sf-cart-view__* markup is presented.
  */
@@ -20,8 +20,6 @@
   flex-direction:column;
   box-sizing:border-box;
   width:100%;
-  min-width:0;
-  max-width:100%;
   min-width:0;
   max-width:100%;
   min-height:0;
@@ -143,7 +141,7 @@
   justify-self:end;
   width:2.75rem;
   height:2.75rem;
-  margin:-.375rem -.375rem 0 0;
+  margin:-.375rem 0 0;
   padding:0;
   border:0;
   border-radius:999px;
