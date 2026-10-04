@@ -1,4 +1,4 @@
-/* ShopFlow – Mobile Nav v1.1.0 – Shop bottom sheet built on the shared ShopFlow Sheet engine.
+/* ShopFlow – Mobile Nav v1.1.2 – Shop bottom sheet built on the shared ShopFlow Sheet engine.
    Opened by the bottom-nav Shop tab or navbar hamburger; the old Webflow dropdown list is hidden.
    Installed in Navigation / OYG › embed "ShopFlow Mobile Nav Code". */
 .navbar-compact_mobile-list{display:none!important}
@@ -41,6 +41,19 @@
 }
 [data-sheet-host][data-sheet-view="mobile-nav"] [data-sheet-title]{display:none}
 [data-sheet-host][data-sheet-view="mobile-nav"] [data-sheet-body]{padding:0;overscroll-behavior:contain}
+[data-sheet-host][data-sheet-view="mobile-nav"] .shop-sheet_category{
+  border-bottom:0;
+  transition:background-color .12s ease,transform .12s ease
+}
+[data-sheet-host][data-sheet-view="mobile-nav"] .shop-sheet_category:focus,
+[data-sheet-host][data-sheet-view="mobile-nav"] .shop-sheet_category:focus-visible{
+  outline:0!important;
+  box-shadow:none!important
+}
+[data-sheet-host][data-sheet-view="mobile-nav"] .shop-sheet_category:active{
+  background:var(--_theme---background--secondary,#fff7f0);
+  transform:scale(.99)
+}
 html:has([data-sheet-host][data-sheet-view="mobile-nav"].is-open) [data-bottom-nav]{z-index:1003}
 
 @media(max-width:479px){

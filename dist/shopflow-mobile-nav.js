@@ -1,16 +1,18 @@
-/* ShopFlow – Mobile Nav v1.1.0 – wires the Shop tab and navbar hamburger to the
+/* ShopFlow – Mobile Nav v1.1.2 – wires the Shop tab and navbar hamburger to the
    [data-sheet="mobile-nav"] content, shown as a bottom sheet by the shared Sheet engine. */
 (function(){
   if(window.__sfMobileNav) return; window.__sfMobileNav = true;
   var TRIGGER = '.navbar-compact_mobile-trigger';
   function sheet(){ return document.querySelector('[data-sheet="mobile-nav"]'); }
+  function sheetApi(){ return window.CoreSheet || window.ShopFlowSheet; }
 
   /* Hamburger: open the drawer instead of the Webflow dropdown (capture phase, before Webflow sees it). */
   function openFrom(e){
     var t = e.target.closest && e.target.closest(TRIGGER);
-    if(!t || !window.ShopFlowSheet || !sheet()) return;
+    var api = sheetApi();
+    if(!t || !api || !sheet()) return;
     e.preventDefault(); e.stopImmediatePropagation();
-    if(e.type === 'click' || e.key === 'Enter' || e.key === ' '){ ShopFlowSheet.open('mobile-nav', {returnFocus:t}); }
+    if(e.type === 'click' || e.key === 'Enter' || e.key === ' '){ api.open('mobile-nav', {returnFocus:t}); }
   }
   document.addEventListener('click', openFrom, true);
   document.addEventListener('keydown', function(e){ if(e.key === 'Enter' || e.key === ' ') openFrom(e); }, true);
@@ -30,14 +32,15 @@
     /* Search: close the drawer, then fire the navbar search opener */
     if(e.target.closest('[data-mnav-search]')){
       e.preventDefault();
-      ShopFlowSheet.close(s, {instant:true, noFocus:true});
+      var api = sheetApi();
+      if(api) api.close(s, {instant:true, noFocus:true});
       var o = document.querySelector('.search-popup-opener');
       if(o) setTimeout(function(){ o.click(); }, 30);
       return;
     }
     /* Any real link: close the drawer so same-page links don't leave it open */
     var a = e.target.closest('a[href]');
-    if(a && a.getAttribute('href') !== '#') ShopFlowSheet.close(s, {instant:true, noFocus:true});
+    if(a && a.getAttribute('href') !== '#'){ var api = sheetApi(); if(api) api.close(s, {instant:true, noFocus:true}); }
   });
 
   document.addEventListener('keydown', function(e){
@@ -48,6 +51,11 @@
   function prep(){
     document.querySelectorAll(TRIGGER).forEach(function(t){ t.setAttribute('aria-haspopup','dialog'); t.setAttribute('aria-expanded','false'); });
     var s = sheet(); if(!s) return;
+    /* Focus the non-interactive sheet heading on open. This prevents a
+       pointer-opened Shop sheet from painting a focus ring on the first card,
+       while keyboard users still retain :focus-visible on real controls. */
+    var title = s.querySelector('.shop-sheet_title, [data-shop-sheet-content] h2');
+    if(title){ title.setAttribute('data-sheet-autofocus',''); title.setAttribute('tabindex','-1'); }
     s.addEventListener('sheet:open', function(){ document.querySelectorAll(TRIGGER).forEach(function(t){ t.setAttribute('aria-expanded','true'); }); });
     s.addEventListener('sheet:close', function(){ document.querySelectorAll(TRIGGER).forEach(function(t){ t.setAttribute('aria-expanded','false'); }); });
   }
