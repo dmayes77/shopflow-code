@@ -1,4 +1,4 @@
-/* ShopFlow – Cart Drawer behavior v1.4.0
+/* ShopFlow – Cart content adapter v1.5.0
  * Works on top of Storesynk's cart ([sf-cart]); Storesynk remains responsible
  * for product, quantity, price, checkout and persistence.
  *
@@ -132,6 +132,8 @@
 
       const count = cartCount();
       setText(title, count ? `Your Cart (${count})` : 'Your Cart');
+      const coreTitle = document.querySelector('[data-sheet-host][data-sheet-view="cart"] [data-sheet-head][data-sheet-default] [data-sheet-title]');
+      setText(coreTitle, count ? `Your Cart (${count})` : 'Your Cart');
       setText(subtotalLabel, count ? `Subtotal (${count} item${count === 1 ? '' : 's'})` : 'Subtotal');
       setClass(cart, 'is-empty', count === 0);
     } finally {
@@ -171,7 +173,7 @@
     const active = sheet().current && sheet().current();
     if (active === cart) return;
     bridging = true;
-    sheet().open(cart, {mode:'drawer', title:'Shopping cart'});
+    sheet().open(cart, {mode:'drawer', title:cartCount() ? `Your Cart (${cartCount()})` : 'Your Cart'});
     window.setTimeout(() => { bridging = false; }, 0);
   };
   const closeStoreCart = () => {
