@@ -42,6 +42,7 @@
   window.ShopFlowAnnouncement = { version: '1.0.0', refresh: measure };
 })();
 
+
 /* Core – Bottom Nav v1.0.0 – behavior for Navigation / Bottom Nav + Navigation / Bottom Nav Tab.
    Core 2.0 (not commerce-specific). Works with the Sheet engine (window.ShopFlowSheet today, window.CoreSheet later).
 
@@ -114,6 +115,7 @@
   }
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
+
 
 /* Core – Consent v1.0.0 – cookie consent + the Site Settings sheet. Core 2.0 (not commerce-specific).
    Uses the Sheet engine (window.CoreSheet / window.ShopFlowSheet). Pairs with the head snippet (Consent Mode v2 defaults),
@@ -215,7 +217,8 @@
   window.CoreConsent = { get: read, set: set, open: open };
 })();
 
-/* ShopFlow – Navigation experience v1.2.0 (native Webflow tab configuration)
+
+/* ShopFlow – Navigation experience v1.3.0 (native Webflow tab configuration)
  * ShopFlow-specific behavior on top of the native Core Bottom Nav configuration:
  *   Home · Shop · New · Cart · More
  *
@@ -421,21 +424,6 @@
     var store = businessInfo();
     document.title = 'New Arrivals | ' + ((store && store.name) || 'ShopFlow');
 
-    var sortNewest = function(){
-      document.querySelectorAll('.product-list[sf-list]').forEach(function(list){
-        var items = Array.prototype.slice.call(list.children);
-        var sorted = items.slice().sort(function(a, b){
-          var aProduct = a.querySelector('[sf-product]');
-          var bProduct = b.querySelector('[sf-product]');
-          var av = Number(aProduct && aProduct.getAttribute('sf-product')) || 0;
-          var bv = Number(bProduct && bProduct.getAttribute('sf-product')) || 0;
-          return bv - av;
-        });
-        if(!sorted.every(function(item, i){ return item === items[i]; })) sorted.forEach(function(item){ list.appendChild(item); });
-      });
-    };
-    sortNewest();
-    window.setTimeout(sortNewest, 350);
   }
 
   function init(){
@@ -453,6 +441,7 @@
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();
+
 
 /* ShopFlow – Store fill v1.0.0 – global Store Settings values anywhere on the page. Core 2.0 upstream candidate.
  * Installed in Page Shell › ShopFlow Core (dist/shopflow-core.js).
@@ -545,6 +534,7 @@
   window.ShopFlowStore = { version: '1.0.0', get: get, all: function(){ cache = read(); return Object.assign({}, cache); }, fill: fill };
 })();
 
+
 /* ShopFlow – Quick Add v1.3.2 – product option picker shown in the shared Mayes Core sheet.
    Installed in Page Shell › embed "ShopFlow Core Code" (section 2).
    Card "Add to cart" / "+" on a product with 2+ sizes opens the [data-quick-add] sheet that sits next to the card in the
@@ -630,6 +620,7 @@
   });
 })();
 
+
 /* ShopFlow – Size Labels v1.0.0 – every size button on the site shows S / M / L… in a rounded square.
    Installed in Page Shell › ShopFlow Core (dist/shopflow-core.js). Applies to any Storesynk option value
    ([sf-option-value]) that contains a .pill-button: product page, Quick Add, and anything added later.
@@ -652,3 +643,4 @@
   function init(){ apply(); watch(); }
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
+
