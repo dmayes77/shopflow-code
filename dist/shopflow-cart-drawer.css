@@ -232,3 +232,25 @@
 [data-sheet-host][data-sheet-view="cart"] .cart_cart-actions .button,
 [data-sheet-host][data-sheet-view="cart"] [data-cart-continue]{display:flex;width:100%;min-height:3rem;align-items:center;justify-content:center}
 [data-sheet-host][data-sheet-view="cart"] [sf-cart-empty]{padding:3rem 1rem;text-align:center}
+
+
+/* v1.9.0 mirrored cart view: Storesynk markup remains hidden in its original popup. */
+[data-sheet-host][data-sheet-view="cart"] [data-cart-view-list]{
+  display:block;flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;
+  margin:0;padding:0 1rem;scrollbar-width:none
+}
+[data-sheet-host][data-sheet-view="cart"] [data-cart-view-list]::-webkit-scrollbar{display:none}
+[data-sheet-host][data-sheet-view="cart"] [data-cart-view-item]{
+  position:relative;display:grid;grid-template-columns:5.25rem minmax(0,1fr) auto;
+  grid-template-areas:"img title del" "img opts del" "img qty price";
+  column-gap:.8rem;row-gap:.25rem;align-items:center;padding:1rem 0;
+  border-bottom:1px solid var(--_theme---border--subtle,#e5e5e5)
+}
+[data-sheet-host][data-sheet-view="cart"] [data-cart-view-item] .cart-item_left-column,
+[data-sheet-host][data-sheet-view="cart"] [data-cart-view-item] .cart-item_info-block{display:contents}
+[data-sheet-host][data-sheet-view="cart"] [data-cart-view-item] .cart-item-image{grid-area:img;width:5.25rem;height:6.25rem;border-radius:.65rem;background-size:cover;background-position:center}
+[data-sheet-host][data-sheet-view="cart"] [data-cart-view-item] .cart-item-title{grid-area:title;font-weight:700;color:inherit;text-decoration:none}
+[data-sheet-host][data-sheet-view="cart"] [data-cart-view-item] .product-options-wrapper{grid-area:opts;color:var(--_theme---text--secondary,#666)}
+[data-sheet-host][data-sheet-view="cart"] [data-cart-view-item] .cart-item_price-information{grid-area:price;justify-self:end}
+[data-sheet-host][data-sheet-view="cart"] [data-cart-view-item] [sf-cart-item-remove]{grid-area:del;justify-self:end}
+[data-sheet-host][data-sheet-view="cart"] [data-cart-view-item] .cart-item_quantity-block{grid-area:qty;justify-self:start}
