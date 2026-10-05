@@ -1,4 +1,4 @@
-/* ShopFlow – Navigation experience v2.2.1 (native Webflow tab configuration)
+/* ShopFlow – Navigation experience v2.2.2 (native Webflow tab configuration)
  * ShopFlow-specific behavior on top of the native Core Bottom Nav configuration:
  *   Home · Shop · New · Cart · More
  *
@@ -192,6 +192,24 @@
     return VIEW_SLUG[value] ? value : 'all';
   }
 
+  function normalizeViewText(value){
+    return String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  }
+
+  function heroViewSlug(hero){
+    var bound = normalizeViewText(hero.getAttribute('data-shop-view-hero'));
+    if(VIEW_SLUG[bound]) return VIEW_SLUG[bound];
+    if(bound && Object.keys(VIEW_SLUG).some(function(key){ return VIEW_SLUG[key] === bound; })) return bound;
+
+    var eyebrow = hero.querySelector('[data-shop-view-eyebrow]');
+    var title = hero.querySelector('[data-shop-view-title]');
+    var text = normalizeViewText((eyebrow ? eyebrow.textContent : '') + ' ' + (title ? title.textContent : ''));
+    if(text.indexOf('fresh-styles-just-in') !== -1 || text.indexOf('just-in') !== -1) return VIEW_SLUG.new;
+    if(text.indexOf('styles-everyone-loves') !== -1 || text.indexOf('most-loved') !== -1) return VIEW_SLUG.best;
+    if(text.indexOf('timeless-pieces-for-less') !== -1 || text.indexOf('special-pricing') !== -1) return VIEW_SLUG.sale;
+    return VIEW_SLUG.all;
+  }
+
   function applyStorefrontView(){
     var view = storefrontView();
     if(!view) return;
@@ -199,7 +217,7 @@
     var heroes = document.querySelectorAll('[data-shop-view-hero]');
     var active = null;
     Array.prototype.forEach.call(heroes, function(hero){
-      var on = hero.getAttribute('data-shop-view-hero') === slug;
+      var on = heroViewSlug(hero) === slug;
       var item = hero.closest('.w-dyn-item') || hero;
       item.hidden = !on;
       item.setAttribute('aria-hidden', on ? 'false' : 'true');
