@@ -1,4 +1,4 @@
-/* ShopFlow – Navigation experience v2.1.0 (native Webflow tab configuration)
+/* ShopFlow – Navigation experience v2.2.0 (native Webflow tab configuration)
  * ShopFlow-specific behavior on top of the native Core Bottom Nav configuration:
  *   Home · Shop · New · Cart · More
  *
@@ -184,38 +184,38 @@
   }
 
 
-  var VIEW_CONTENT = {
-    all:  {eyebrow:'THE OYG EDIT', title:'Your Next Favorite Look', copy:'Game day looks, everyday favorites, and all the pieces that make Orange You Glad unique.', cta:'EXPLORE THE COLLECTION →'},
-    new:  {eyebrow:'JUST IN', title:'Fresh Styles Just In', copy:'The latest Orange You Glad arrivals, ready for game day and every day.', cta:'EXPLORE NEW ARRIVALS →'},
-    best: {eyebrow:'MOST LOVED', title:'Styles Everyone Loves', copy:'Customer favorites and standout styles worth another look.', cta:'EXPLORE BEST SELLERS →'},
-    sale: {eyebrow:'SPECIAL PRICING', title:'Timeless Pieces for Less', copy:'Styles you love at an exceptional value.', cta:'EXPLORE SALE →'}
-  };
+  var VIEW_SLUG = {all:'shop-all', new:'new-arrivals', best:'best-sellers', sale:'sale'};
 
   function storefrontView(){
     if(location.pathname.replace(/\/+$/, '') !== '/shop-all') return null;
     var value = new URLSearchParams(location.search).get('view') || 'all';
-    return VIEW_CONTENT[value] ? value : 'all';
+    return VIEW_SLUG[value] ? value : 'all';
   }
 
   function applyStorefrontView(){
     var view = storefrontView();
     if(!view) return;
-    var content = VIEW_CONTENT[view];
-    var hero = document.querySelector('[data-shop-view-hero]');
-    if(hero) hero.setAttribute('data-shop-view', view);
-    var eyebrow = document.querySelector('[data-shop-view-eyebrow]');
-    var title = document.querySelector('[data-shop-view-title]');
-    var copy = document.querySelector('[data-shop-view-copy]');
-    var cta = document.querySelector('[data-shop-view-cta]');
-    if(eyebrow) eyebrow.textContent = content.eyebrow;
-    if(title) title.textContent = content.title;
-    if(copy) copy.textContent = content.copy;
-    if(cta) cta.textContent = content.cta;
+    var slug = VIEW_SLUG[view];
+    var items = document.querySelectorAll('[data-merch-view]');
+    var active = null;
+    Array.prototype.forEach.call(items, function(item){
+      var on = item.getAttribute('data-merch-view') === slug;
+      item.hidden = !on;
+      item.setAttribute('aria-hidden', on ? 'false' : 'true');
+      if(on) active = item;
+    });
     document.documentElement.setAttribute('data-shop-view', view);
+    if(!active) return;
+    var hero = active.querySelector('[data-shop-view-hero]');
+    if(hero) hero.setAttribute('data-shop-view', view);
+    var cta = active.querySelector('[data-shop-view-cta]');
     if(cta && !cta.__shopflowViewCta){
       cta.__shopflowViewCta = true;
-      var go = function(){ var target = document.querySelector('.Product-List, .product-list, [data-product-grid], .w-dyn-list'); if(target) target.scrollIntoView({behavior:'smooth', block:'start'}); };
-      cta.addEventListener('click', go);
+      var go = function(){
+        var target = document.querySelector('[data-product-grid], .Product-List, .product-list');
+        if(target) target.scrollIntoView({behavior:'smooth', block:'start'});
+      };
+      cta.addEventListener('click', function(e){ e.preventDefault(); go(); });
       cta.addEventListener('keydown', function(e){ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(); } });
     }
   }
