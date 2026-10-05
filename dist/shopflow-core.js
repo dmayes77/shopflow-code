@@ -218,7 +218,7 @@
 })();
 
 
-/* ShopFlow – Navigation experience v2.2.0 (native Webflow tab configuration)
+/* ShopFlow – Navigation experience v2.2.1 (native Webflow tab configuration)
  * ShopFlow-specific behavior on top of the native Core Bottom Nav configuration:
  *   Home · Shop · New · Cart · More
  *
@@ -416,18 +416,18 @@
     var view = storefrontView();
     if(!view) return;
     var slug = VIEW_SLUG[view];
-    var items = document.querySelectorAll('[data-merch-view]');
+    var heroes = document.querySelectorAll('[data-shop-view-hero]');
     var active = null;
-    Array.prototype.forEach.call(items, function(item){
-      var on = item.getAttribute('data-merch-view') === slug;
+    Array.prototype.forEach.call(heroes, function(hero){
+      var on = hero.getAttribute('data-shop-view-hero') === slug;
+      var item = hero.closest('.w-dyn-item') || hero;
       item.hidden = !on;
       item.setAttribute('aria-hidden', on ? 'false' : 'true');
-      if(on) active = item;
+      if(on) active = hero;
     });
     document.documentElement.setAttribute('data-shop-view', view);
     if(!active) return;
-    var hero = active.querySelector('[data-shop-view-hero]');
-    if(hero) hero.setAttribute('data-shop-view', view);
+    active.setAttribute('data-shop-view', view);
     var cta = active.querySelector('[data-shop-view-cta]');
     if(cta && !cta.__shopflowViewCta){
       cta.__shopflowViewCta = true;
