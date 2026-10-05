@@ -1,4 +1,4 @@
-/* ShopFlow – Navigation experience v2.2.2 (native Webflow tab configuration)
+/* ShopFlow – Navigation experience v2.3.0 (native Webflow tab configuration)
  * ShopFlow-specific behavior on top of the native Core Bottom Nav configuration:
  *   Home · Shop · New · Cart · More
  *
@@ -184,12 +184,12 @@
   }
 
 
-  var VIEW_SLUG = {all:'shop-all', new:'new-arrivals', best:'best-sellers', sale:'sale'};
+  var VIEW_SLUG = {'shop-all':'shop-all', 'new-arrivals':'new-arrivals', 'best-sellers':'best-sellers', sale:'sale'};
 
   function storefrontView(){
     if(location.pathname.replace(/\/+$/, '') !== '/shop-all') return null;
-    var value = new URLSearchParams(location.search).get('view') || 'all';
-    return VIEW_SLUG[value] ? value : 'all';
+    var value = new URLSearchParams(location.search).get('view') || 'shop-all';
+    return VIEW_SLUG[value] ? value : 'shop-all';
   }
 
   function normalizeViewText(value){
@@ -204,10 +204,10 @@
     var eyebrow = hero.querySelector('[data-shop-view-eyebrow]');
     var title = hero.querySelector('[data-shop-view-title]');
     var text = normalizeViewText((eyebrow ? eyebrow.textContent : '') + ' ' + (title ? title.textContent : ''));
-    if(text.indexOf('fresh-styles-just-in') !== -1 || text.indexOf('just-in') !== -1) return VIEW_SLUG.new;
-    if(text.indexOf('styles-everyone-loves') !== -1 || text.indexOf('most-loved') !== -1) return VIEW_SLUG.best;
+    if(text.indexOf('fresh-styles-just-in') !== -1 || text.indexOf('just-in') !== -1) return VIEW_SLUG['new-arrivals'];
+    if(text.indexOf('styles-everyone-loves') !== -1 || text.indexOf('most-loved') !== -1) return VIEW_SLUG['best-sellers'];
     if(text.indexOf('timeless-pieces-for-less') !== -1 || text.indexOf('special-pricing') !== -1) return VIEW_SLUG.sale;
-    return VIEW_SLUG.all;
+    return VIEW_SLUG['shop-all'];
   }
 
   function applyStorefrontView(){
