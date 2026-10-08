@@ -1,4 +1,4 @@
-/* ShopFlow Collection Filters v1.5.1 – CSS (static).
+/* ShopFlow Collection Filters v1.6.0 – CSS (static).
    v1.2.0: tag sections (.filter-subgroup). Groups marked data-filter-sections keep their chips hidden until the script has
    removed the tag prefixes, so a raw "Color: Orange" is never shown, not even for a moment.
    v1.1.0: ≤991px the panel is a bottom sheet (chips, grab handle, swipe down to close, Show results + Reset all pinned at the
@@ -11,6 +11,7 @@
    Button shapes (Filter & Sort, Show results) come from the Webflow classes and use Core 2.0 Radius/small. */
 .collection-filters .w-dyn-empty{display:none}
 .collection-filters [hidden]{display:none!important}
+[sf-list] > .is-view-filter-hidden{display:none!important}
 [data-filters-empty]:not(.is-active){display:none!important}
 .filter-option{user-select:none}
 .filter-group[data-filter-sections]:not(.is-sectioned) .filter-options{visibility:hidden}
