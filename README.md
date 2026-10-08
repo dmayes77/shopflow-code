@@ -28,8 +28,8 @@ layout, behavior and accessibility on top of Storesynk's `sf-*` attributes.
 | `shopflow-cart-drawer.css` / `.js` | 2.0.3 / 2.0.4 | Page Shell › cart embed **Popup CSS** – adapter from Storesynk cart state/actions to a ShopFlow-owned Cart view inside Core Sheet | ShopFlow |
 | `shopflow-mobile-nav.css` / `.js` | 1.1.2 / 1.1.1 | Navigation / OYG › embed **ShopFlow Mobile Nav Code** | ShopFlow |
 | `shopflow-pdp.css` / `.js` | 1.2.8 | Products Template › embed **ShopFlow PDP Code** | ShopFlow |
-| `shopflow-collection-filters.css` | 1.6.0 | Shop All › filters embed (`<link id="shopflow-collection-filters-css">`) | ShopFlow |
-| `shopflow-collection-filters.js` | 1.6.0 | Shop All › filters embed; maps `?view=sale`, `best-sellers`, `new-arrivals`, and `shop-all` to catalog state | ShopFlow |
+| `shopflow-collection-filters.css` | 1.6.1 | Shop All › filters embed (`<link id="shopflow-collection-filters-css">`) | ShopFlow |
+| `shopflow-collection-filters.js` | 1.6.1 | Shop All › filters embed; maps `?view=sale`, `best-sellers`, and `new-arrivals` to structured `Collection:` tags | ShopFlow |
 | `shopflow-product-card-quick-add.css` | 1.1.0 | Product Card component (mobile "+" button) | ShopFlow |
 | `shopflow-product-card-images.js` | 1.1.0 | Site footer custom code (registered script `shopflowresponsiveimages`) | ShopFlow |
 | `shopflow-wishlist.css` / `.js` | 1.0.1 | **Parked, not installed.** Kept for when the wishlist comes back. | ShopFlow |

@@ -1,5 +1,7 @@
-/* ShopFlow – Collection Filters v1.6.0
+/* ShopFlow – Collection Filters v1.6.1
  * Behavior layer for the ShopFlow Collection Filters component (Storesynk-powered).
+ * v1.6.1: Sale, Best Sellers, and New Arrivals are all tag-driven merchandising views using
+ *         Collection: Sale, Collection: Best-Sellers, and Collection: New-Arrivals.
  * v1.6.0: merchandising view URLs now initialize the catalog state: Sale shows products that are actually on sale,
  *         Best Sellers applies Shopify's best-selling sort, New Arrivals selects the Collection: New-Arrivals tag,
  *         and Shop All leaves the full catalog visible. Reset all also clears the active URL view.
@@ -94,26 +96,18 @@
       select.dispatchEvent(new Event('change', { bubbles: true }));
     };
 
-    const isOnSale = item => {
-      const badge = q(item, '[sf-show-sale]');
-      if (badge && getComputedStyle(badge).display !== 'none') return true;
-      const amount = selector => {
-        const text = q(item, selector)?.textContent || '';
-        const value = Number(text.replace(/[^0-9.-]+/g, ''));
-        return Number.isFinite(value) ? value : 0;
-      };
-      const price = amount('[sf-show-price]');
-      const compare = amount('[sf-show-compare-price]');
-      return compare > price && price > 0;
-    };
-
     const applyView = () => {
       if (!activeView || activeView === 'shop-all') return;
       root.dataset.activeView = activeView;
       if (activeView === 'best-sellers') setSort('BEST_SELLING:asc');
-      if (activeView === 'new-arrivals') {
+      const tagValue = {
+        sale: 'collection: sale',
+        'best-sellers': 'collection: best-sellers',
+        'new-arrivals': 'collection: new-arrivals'
+      }[activeView];
+      if (tagValue) {
         const target = qa(root, '[sf-filter="tag"] [sf-filter-value]').find(el =>
-          (el.getAttribute('sf-filter-value') || '').trim().toLowerCase() === 'collection: new-arrivals'
+          (el.getAttribute('sf-filter-value') || '').trim().toLowerCase() === tagValue
         );
         if (target && !target.classList.contains(ACTIVE) && !viewTagRequested) {
           viewTagRequested = true;
@@ -122,15 +116,11 @@
           setTimeout(() => { if (!target.classList.contains(ACTIVE)) viewTagRequested = false; }, 250);
         }
       }
-      if (activeView === 'sale' && list) {
-        qa(list, ':scope > *').forEach(item => setClass(item, 'is-view-filter-hidden', !isOnSale(item)));
-      }
     };
 
     const clearView = () => {
       activeView = '';
       delete root.dataset.activeView;
-      if (list) qa(list, ':scope > *').forEach(item => setClass(item, 'is-view-filter-hidden', false));
       const select = q(root, 'select[sf-sort]');
       if (select?.options.length) setSort(select.options[0].value);
       const url = new URL(location.href);
